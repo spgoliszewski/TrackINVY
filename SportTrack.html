@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SportTrack</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #eeede9;
+    --text: #1a1a18; --text2: #6b6b67; --text3: #9e9e9a;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --green: #1D9E75; --red: #E24B4A; --blue: #378ADD; --orange: #D97706;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2b;
+      --text: #f0efeb; --text2: #9e9e9a; --text3: #6b6b67;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: var(--text); background: var(--bg3); min-height: 100vh; }
+  .app { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+  .top-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 600; }
+  .logo i { font-size: 26px; }
+  .nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  .nav-btn { padding: 8px 16px; border: 0.5px solid var(--border2); background: transparent; border-radius: var(--radius); cursor: pointer; font-size: 13px; color: var(--text2); transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+  .nav-btn.active { background: var(--text); color: var(--bg); border-color: transparent; }
+  .nav-btn:hover:not(.active) { background: var(--bg2); }
+  .page { display: none; }
+  .page.active { display: block; }
+  .grid-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .metric { background: var(--bg2); border-radius: var(--radius); padding: 14px 16px; }
+  .metric-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .metric-value { font-size: 22px; font-weight: 600; }
+  .metric-value.green { color: var(--green); }
+  .metric-value.red { color: var(--red); }
+  .btn { padding: 8px 16px; border: 0.5px solid var(--border2); background: transparent; border-radius: var(--radius); cursor: pointer; font-size: 13px; color: var(--text); transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--bg2); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--text); color: var(--bg); border-color: transparent; }
+  .btn-primary:hover { opacity: 0.85; background: var(--text); }
+  .btn-danger { color: var(--red); border-color: var(--red); }
+  .btn-danger:hover { background: #FCEBEB; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .filters { display: flex; gap: 8px; margin-bottom: 0.75rem; flex-wrap: wrap; align-items: center; }
+  .filters input[type=text] { flex: 1; min-width: 160px; max-width: 240px; }
+  .filter-btn { padding: 5px 14px; border: 0.5px solid var(--border); background: var(--bg); border-radius: 99px; cursor: pointer; font-size: 12px; color: var(--text2); transition: all 0.15s; white-space: nowrap; }
+  .filter-btn.active { background: var(--text); color: var(--bg); border-color: transparent; }
+  .filter-btn:hover:not(.active) { background: var(--bg2); }
+  .sort-bar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+  .sort-bar label { font-size: 12px; color: var(--text2); white-space: nowrap; }
+  .sort-bar select { width: auto; padding: 5px 10px; font-size: 12px; }
+  .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .item-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; position: relative; overflow: visible; }
+  .item-card:hover { border-color: var(--border2); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  /* Hover quick-actions overlay — sits on top of the photo */
+  .item-card .quick-actions { position: absolute; top: 14px; left: 14px; right: 14px; height: 150px; background: rgba(0,0,0,0.55); border-radius: var(--radius); padding: 10px; display: flex; flex-direction: column; justify-content: flex-end; gap: 5px; opacity: 0; pointer-events: none; transition: opacity 0.18s; z-index: 10; backdrop-filter: blur(2px); }
+  .item-card:hover .quick-actions { opacity: 1; pointer-events: auto; }
+  .quick-next-btn { width: 100%; padding: 7px 10px; border: none; background: rgba(255,255,255,0.92); border-radius: var(--radius); cursor: pointer; font-size: 12px; font-weight: 600; color: #1a1a18; display: flex; align-items: center; gap: 7px; transition: background 0.12s; text-align: left; }
+  .quick-next-btn:hover { background: #ffffff; }
+  .quick-next-btn .arrow { color: #888; font-size: 11px; margin-left: auto; }
+  .quick-problem-btn { width: 100%; padding: 6px 10px; border: none; background: rgba(226,75,74,0.85); border-radius: var(--radius); cursor: pointer; font-size: 12px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px; transition: background 0.12s; text-align: left; }
+  .quick-problem-btn:hover { background: rgba(226,75,74,1); }
+  .quick-divider { height: 0.5px; background: rgba(255,255,255,0.2); margin: 2px 0; }
+  .item-photo-wrap { width: 100%; height: 150px; border-radius: var(--radius); margin-bottom: 10px; background: var(--bg2); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .item-photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .item-photo-wrap i { font-size: 40px; color: var(--text3); }
+  .item-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-club { font-size: 11px; color: var(--text2); margin-bottom: 3px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-desc { font-size: 12px; color: var(--text2); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
+  .item-prices { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; }
+  .item-account { font-size: 11px; color: var(--text3); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .badge-listed    { background: #EAF3DE; color: #3B6D11; }
+  .badge-unlisted  { background: #F0F0EE; color: #5a5a56; }
+  .badge-sold      { background: #E6F1FB; color: #185FA5; }
+  .badge-transit   { background: #FAEEDA; color: #854F0B; }
+  .badge-completed { background: #9FE1CB; color: #085041; }
+  .badge-problem   { background: #FCEBEB; color: #A32D2D; }
+  .badge-order-pending   { background: #FAEEDA; color: #854F0B; }
+  .badge-order-received  { background: #EAF3DE; color: #3B6D11; }
+  .badge-order-cancelled { background: #FCEBEB; color: #A32D2D; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; z-index: 1000; overflow-y: auto; }
+  .modal { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 1.5rem; width: 480px; max-width: 100%; }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; }
+  .form-row { margin-bottom: 14px; }
+  .form-label { font-size: 12px; color: var(--text2); margin-bottom: 5px; display: block; }
+  input[type=text], input[type=number], input[type=date], input[type=url], select, textarea {
+    width: 100%; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 10px;
+    font-size: 13px; background: var(--bg); color: var(--text); font-family: inherit; transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-row-2 .form-row { margin-bottom: 0; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; padding-top: 1rem; border-top: 0.5px solid var(--border); }
+  .order-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 16px; }
+  .order-icon { width: 44px; height: 44px; border-radius: var(--radius); background: var(--bg2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .order-info { flex: 1; min-width: 0; }
+  .order-title { font-weight: 600; font-size: 14px; }
+  .order-meta { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .order-right { text-align: right; flex-shrink: 0; }
+  .order-price { font-weight: 600; font-size: 15px; }
+  .order-actions { display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; }
+  .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .account-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+  .account-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .account-platform { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
+  .account-stats { display: flex; gap: 12px; font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+  .account-actions { display: flex; gap: 6px; }
+  .limit-tracks { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .limit-track-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .limit-track-name { font-size: 11px; color: var(--text2); font-weight: 500; }
+  .limit-track-val  { font-size: 11px; font-weight: 700; }
+  .limit-track-val.ok      { color: var(--green); }
+  .limit-track-val.warn    { color: var(--orange); }
+  .limit-track-val.over    { color: var(--red); }
+  .limit-bar-bg { width: 100%; height: 8px; background: var(--bg3); border-radius: 99px; overflow: visible; position: relative; }
+  .limit-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease, background 0.3s; max-width: 100%; }
+  .limit-bar-fill.ok   { background: var(--green); }
+  .limit-bar-fill.warn { background: var(--orange); }
+  .limit-bar-fill.over { background: var(--red); }
+  /* overflow spike — thin red line sticking out past 100% */
+  .limit-bar-overflow { position: absolute; top: -3px; right: 0; width: 3px; height: 14px; background: var(--red); border-radius: 2px; }
+  .limit-bar-marker { position: absolute; top: -3px; left: 100%; width: 2px; height: 14px; background: var(--border2); border-radius: 1px; transform: translateX(-1px); }
+  .limit-warning { font-size: 11px; color: var(--red); font-weight: 600; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+  .profit-section { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+  .section-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  .chart-bar-container { display: flex; flex-direction: column; gap: 10px; }
+  .chart-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .chart-row-label { width: 90px; text-align: right; color: var(--text2); flex-shrink: 0; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chart-bar-wrap { flex: 1; height: 22px; background: var(--bg2); border-radius: 4px; overflow: hidden; }
+  .chart-bar { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.5s ease; }
+  .chart-bar.neg { background: var(--red); }
+  .chart-bar.blue { background: var(--blue); }
+  .chart-row-val { width: 72px; font-weight: 600; font-size: 12px; }
+  .detail-photo { width: 100%; max-height: 260px; object-fit: cover; border-radius: var(--radius); margin-bottom: 1rem; }
+  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-key { color: var(--text2); flex-shrink: 0; margin-right: 12px; }
+  .period-tabs { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .period-tab { padding: 6px 16px; border: 0.5px solid var(--border); background: var(--bg); border-radius: 99px; cursor: pointer; font-size: 12px; color: var(--text2); transition: all 0.15s; }
+  .period-tab.active { background: var(--text); color: var(--bg); border-color: transparent; }
+  .period-tab:hover:not(.active) { background: var(--bg2); }
+  .empty-state { text-align: center; padding: 4rem 1rem; color: var(--text2); }
+  .empty-state i { font-size: 52px; display: block; margin-bottom: 14px; color: var(--text3); }
+  .empty-state p { font-size: 14px; }
+  .photo-preview { width: 100%; height: 130px; object-fit: cover; border-radius: var(--radius); margin-top: 6px; }
+  input[type=file] { border: none; padding: 4px 0; font-size: 12px; background: transparent; }
+  .inventory-count { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px; }
+  .page-header .section-title { margin: 0; }
+  .club-pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border2); }
+  /* storage indicator */
+  #storageIndicator { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 5px; }
+  #storageIndicator.ok { color: var(--green); }
+  #storageIndicator.err { color: var(--red); }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: var(--radius); font-size: 13px; z-index: 9999; animation: fadeInUp 0.2s ease, fadeOut 0.3s ease 2.7s forwards; pointer-events: none; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+  .toast.with-undo { pointer-events: auto; animation: fadeInUp 0.2s ease, fadeOut 0.3s ease 9.7s forwards; }
+  .toast-undo-btn { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: inherit; border-radius: 4px; padding: 2px 10px; font-size: 12px; font-weight: 700; cursor: pointer; letter-spacing: .03em; }
+  .toast-undo-btn:hover { background: rgba(255,255,255,0.15); }
+  @keyframes fadeInUp { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+  @keyframes fadeOut  { to { opacity: 0; } }
+  /* Archive */
+  .archive-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg2); border-radius: var(--radius); margin-bottom: 1rem; font-size: 13px; flex-wrap: wrap; }
+  .archive-bar label { font-size: 12px; color: var(--text2); white-space: nowrap; }
+  .archive-bar select { width: auto; padding: 4px 8px; font-size: 12px; }
+  .item-card.archived-card { border-style: dashed; opacity: 0.7; }
+  .item-card.archived-card:hover { opacity: 1; }
+  .archived-badge { display: inline-block; font-size: 10px; font-weight: 700; background: var(--bg3); color: var(--text3); border-radius: 4px; padding: 1px 5px; margin-left: 5px; vertical-align: middle; }
+  .view-tabs { display: flex; gap: 4px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+  .view-tab { padding: 6px 16px; border: 0.5px solid var(--border); background: var(--bg); border-radius: 99px; cursor: pointer; font-size: 12px; color: var(--text2); transition: all 0.15s; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .view-tab.active { background: var(--text); color: var(--bg); border-color: transparent; }
+  .view-tab:hover:not(.active) { background: var(--bg2); }
+  .archive-auto-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); margin-left: auto; flex-wrap: wrap; }
+  .archive-auto-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--blue); cursor: pointer; }
+
+  /* Table view */
+  .inv-table-wrap { width: 100%; overflow-x: auto; }
+  .inv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .inv-table th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; border-bottom: 0.5px solid var(--border2); white-space: nowrap; cursor: pointer; user-select: none; background: var(--bg2); }
+  .inv-table th:hover { color: var(--text); }
+  .inv-table th .sort-icon { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+  .inv-table th.sorted .sort-icon { opacity: 1; color: var(--blue); }
+  .inv-table td { padding: 9px 12px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  .inv-table tr:last-child td { border-bottom: none; }
+  .inv-table tr:hover td { background: var(--bg2); cursor: pointer; }
+  .inv-table .col-thumb { width: 44px; padding: 6px 8px; }
+  .inv-table .thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; background: var(--bg2); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .inv-table .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .inv-table .thumb i { font-size: 18px; color: var(--text3); }
+  .inv-table .col-name { min-width: 160px; }
+  .inv-table .col-name-cell { font-weight: 600; }
+  .inv-table .col-name-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .inv-table .profit-pos { color: var(--green); font-weight: 600; }
+  .inv-table .profit-neg { color: var(--red);   font-weight: 600; }
+  .view-mode-btn { padding: 5px 9px; border: 0.5px solid var(--border2); background: transparent; border-radius: var(--radius); cursor: pointer; color: var(--text2); transition: all 0.15s; font-size: 15px; line-height: 1; display: inline-flex; align-items: center; }
+  .view-mode-btn.active { background: var(--text); color: var(--bg); border-color: transparent; }
+  .view-mode-btn:hover:not(.active) { background: var(--bg2); }
+
+  /* Other expenses */
+  .expense-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .expense-row input[type=text]   { flex: 2; }
+  .expense-row input[type=number] { flex: 1; min-width: 80px; }
+  .expense-row input[type=date]   { flex: 1.2; min-width: 110px; }
+  .expense-row .btn-icon { padding: 7px 9px; flex-shrink: 0; }
+  .expense-list { margin-bottom: 12px; }
+
+  /* Account status badges */
+  .acc-status { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .acc-status-active    { background: #EAF3DE; color: #3B6D11; }
+  .acc-status-suspended { background: #FAEEDA; color: #854F0B; }
+  .acc-status-blocked   { background: #FCEBEB; color: #A32D2D; }
+  .acc-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  /* Status section in modal */
+  .status-reason-wrap { margin-top: 10px; }
+  #a_status_extra { display: none; }
+  #a_status_extra.visible { display: block; }
+
+  /* Wallet */
+  .wallet-block { background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; }
+  .wallet-balance { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .wallet-balance.positive { color: var(--green); }
+  .wallet-balance.zero     { color: var(--text3); }
+  .wallet-balance.negative { color: var(--red); }
+  .wallet-meta { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  .wallet-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .wallet-method { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; background: var(--bg3); color: var(--text2); padding: 2px 8px; border-radius: 4px; margin-top: 6px; }
+  .withdraw-history { font-size: 11px; color: var(--text3); margin-top: 8px; border-top: 0.5px solid var(--border); padding-top: 8px; }
+  .withdraw-row { display: flex; justify-content: space-between; padding: 2px 0; }
+
+  /* Safety status */
+  .safety-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: .03em; }
+  .safety-safe      { background: #1D9E75; color: #fff; }
+  .safety-semi-safe { background: #D97706; color: #fff; }
+  .safety-unsafe    { background: #E24B4A; color: #fff; }
+  /* Card full background by safety */
+  .account-card.card-safe      { background: #f0faf5; border-color: #a7dfc7; }
+  .account-card.card-semi-safe { background: #fffbeb; border-color: #fcd34d; }
+  .account-card.card-unsafe    { background: #fff5f5; border-color: #fca5a5; }
+  .account-card.card-neutral   { background: var(--bg); border-color: var(--border); }
+  @media (prefers-color-scheme: dark) {
+    .account-card.card-safe      { background: #0d2e22; border-color: #1D9E75; }
+    .account-card.card-semi-safe { background: #2b2010; border-color: #D97706; }
+    .account-card.card-unsafe    { background: #2d1212; border-color: #E24B4A; }
+    .account-card.card-neutral   { background: var(--bg2); border-color: var(--border); }
+  }
+  .phone-real { color: #1D9E75; font-weight: 600; }
+  .phone-temp { color: #E24B4A; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-header">
+    <div class="logo"><i class="ti ti-shirt"></i> SportTrack</div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+      <span id="storageIndicator"><i class="ti ti-circle-filled" style="font-size:8px;"></i> <span id="storageStatus">—</span></span>
+      <button class="btn btn-sm" onclick="exportData()" title="Export data to JSON file"><i class="ti ti-download"></i> Export</button>
+      <label class="btn btn-sm" title="Import data from JSON file" style="cursor:pointer;margin:0;">
+        <i class="ti ti-upload"></i> Import
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none;" />
+      </label>
+    </div>
+    <nav class="nav" id="mainNav">
+      <button class="nav-btn active" onclick="switchPage('inventory')"><i class="ti ti-shirt"></i> Inventory</button>
+      <button class="nav-btn" onclick="switchPage('orders')"><i class="ti ti-package"></i> Orders</button>
+      <button class="nav-btn" onclick="switchPage('accounts')"><i class="ti ti-user-circle"></i> Accounts</button>
+      <button class="nav-btn" onclick="switchPage('profit')"><i class="ti ti-chart-bar"></i> Profit</button>
+      <button class="nav-btn" onclick="switchPage('stats')"><i class="ti ti-chart-pie"></i> Stats</button>
+      <button class="nav-btn" onclick="switchPage('expenses')"><i class="ti ti-receipt"></i> Expenses</button>
+    </nav>
+  </div>
+
+  <!-- INVENTORY -->
+  <div class="page active" id="page-inventory">
+    <!-- View tabs: Active / Archive -->
+    <div class="view-tabs">
+      <button class="view-tab active" id="viewTabActive" onclick="setViewTab('active')"><i class="ti ti-shirt"></i> Active</button>
+      <button class="view-tab" id="viewTabArchive" onclick="setViewTab('archive')"><i class="ti ti-archive"></i> Archive <span id="archiveCount" style="font-size:10px;background:var(--bg3);padding:1px 6px;border-radius:99px;margin-left:2px;">0</span></button>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+        <div style="display:flex;gap:3px;border:0.5px solid var(--border2);border-radius:var(--radius);padding:2px;">
+          <button class="view-mode-btn active" id="vmGrid"  onclick="setViewMode('grid')"  title="Grid view"><i class="ti ti-layout-grid"></i></button>
+          <button class="view-mode-btn"        id="vmTable" onclick="setViewMode('table')" title="Table view"><i class="ti ti-table"></i></button>
+        </div>
+        <button class="btn btn-primary" onclick="openAddItem()"><i class="ti ti-plus"></i> Add item</button>
+      </div>
+    </div>
+
+    <!-- Active view filters -->
+    <div id="activeFilters">
+      <div class="filters">
+        <input type="text" id="searchInput" placeholder="Search by name, club, buyer..." oninput="renderInventory()" />
+        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" onclick="setFilter('listed',this)">Listed</button>
+        <button class="filter-btn" onclick="setFilter('unlisted',this)">Unlisted</button>
+        <button class="filter-btn" onclick="setFilter('sold',this)">Sold</button>
+        <button class="filter-btn" onclick="setFilter('transit',this)">In Transit</button>
+        <button class="filter-btn" onclick="setFilter('completed',this)">Completed</button>
+        <button class="filter-btn" onclick="setFilter('problem',this)">Problem</button>
+      </div>
+      <div class="sort-bar">
+        <label>Club:</label>
+        <select id="clubFilter" onchange="renderInventory()" style="min-width:130px;">
+          <option value="">All clubs</option>
+        </select>
+        <label>Account:</label>
+        <select id="accountFilter" onchange="renderInventory()" style="min-width:130px;">
+          <option value="">All accounts</option>
+        </select>
+        <label>Sort:</label>
+        <select id="sortBy" onchange="renderInventory()" style="min-width:160px;">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="name_asc">Name A–Z</option>
+          <option value="name_desc">Name Z–A</option>
+          <option value="buy_asc">Buy price ↑</option>
+          <option value="buy_desc">Buy price ↓</option>
+          <option value="sell_asc">Sell price ↑</option>
+          <option value="sell_desc">Sell price ↓</option>
+          <option value="profit_desc">Profit ↓</option>
+          <option value="profit_asc">Profit ↑</option>
+          <option value="club_asc">Club A–Z</option>
+        </select>
+        <!-- Auto-archive control -->
+        <div class="archive-auto-row">
+          <label style="font-weight:500;color:var(--text);">Auto-archive sold/completed after</label>
+          <select id="autoArchiveDays" onchange="saveArchiveSettings();renderInventory()" style="width:auto;padding:4px 8px;font-size:12px;">
+            <option value="0">Never</option>
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="60">60 days</option>
+            <option value="90">90 days</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Archive view filters -->
+    <div id="archiveFilters" style="display:none;">
+      <div class="archive-bar">
+        <i class="ti ti-archive" style="color:var(--text3);"></i>
+        <span style="color:var(--text2);">Archived items are hidden from the main inventory but still count in Profit &amp; Stats.</span>
+        <input type="text" id="archiveSearch" placeholder="Search archive..." oninput="renderArchive()" style="margin-left:auto;max-width:220px;" />
+      </div>
+    </div>
+
+    <div class="inventory-count" id="inventoryCount"></div>
+    <div class="item-grid" id="itemGrid"></div>
+    <div class="inv-table-wrap" id="itemTable" style="display:none;"></div>
+    <div id="emptyInventory" class="empty-state" style="display:none;">
+      <i class="ti ti-shirt"></i>
+      <p>No items yet. Click "Add item" to get started.</p>
+    </div>
+    <div id="emptyArchive" class="empty-state" style="display:none;">
+      <i class="ti ti-archive"></i>
+      <p>No archived items yet.</p>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="page" id="page-orders">
+    <div class="page-header">
+      <span class="section-title">Supply Orders</span>
+      <button class="btn btn-primary" onclick="openAddOrder()"><i class="ti ti-plus"></i> New order</button>
+    </div>
+    <div id="orderList"></div>
+    <div id="emptyOrders" class="empty-state" style="display:none;">
+      <i class="ti ti-package"></i>
+      <p>No orders yet. Add your first supply order.</p>
+    </div>
+  </div>
+
+  <!-- ACCOUNTS -->
+  <div class="page" id="page-accounts">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="filter-btn active" id="accTypeAll"      onclick="setAccFilter('type','all',this)">All</button>
+        <button class="filter-btn"        id="accTypeSelling"  onclick="setAccFilter('type','selling',this)">🛒 Selling</button>
+        <button class="filter-btn"        id="accTypeBuying"   onclick="setAccFilter('type','buying',this)">📦 Buying</button>
+        <button class="filter-btn"        id="accTypeBoth"     onclick="setAccFilter('type','both',this)">↕ Both</button>
+        <div style="width:1px;background:var(--border2);margin:0 4px;"></div>
+        <button class="filter-btn" id="accSafeAll"   onclick="setAccFilter('safety','all',this)">All safety</button>
+        <button class="filter-btn" id="accSafeSafe"  onclick="setAccFilter('safety','safe',this)">✅ Safe</button>
+        <button class="filter-btn" id="accSafeSemi"  onclick="setAccFilter('safety','semi-safe',this)">⚠ Semi</button>
+        <button class="filter-btn" id="accSafeUnsafe"onclick="setAccFilter('safety','unsafe',this)">🚫 Unsafe</button>
+        <div style="width:1px;background:var(--border2);margin:0 4px;"></div>
+        <button class="filter-btn" id="accStAll"       onclick="setAccFilter('status','all',this)">All status</button>
+        <button class="filter-btn" id="accStActive"    onclick="setAccFilter('status','active',this)">Active</button>
+        <button class="filter-btn" id="accStSuspended" onclick="setAccFilter('status','suspended',this)">Suspended</button>
+        <button class="filter-btn" id="accStBlocked"   onclick="setAccFilter('status','blocked',this)">Blocked</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="accSearch" placeholder="Search accounts..." oninput="renderAccounts()" style="width:180px;padding:7px 10px;font-size:13px;" />
+        <button class="btn btn-primary" onclick="openAddAccount()"><i class="ti ti-plus"></i> Add account</button>
+      </div>
+    </div>
+    <div class="accounts-grid" id="accountGrid"></div>
+    <div id="emptyAccounts" class="empty-state" style="display:none;">
+      <i class="ti ti-user-circle"></i>
+      <p>No accounts match the current filters.</p>
+    </div>
+  </div>
+
+  <!-- PROFIT -->
+  <div class="page" id="page-profit">
+    <div class="period-tabs">
+      <button class="period-tab active" onclick="setPeriod('7d',this)">7 days</button>
+      <button class="period-tab" onclick="setPeriod('30d',this)">30 days</button>
+      <button class="period-tab" onclick="setPeriod('90d',this)">90 days</button>
+      <button class="period-tab" onclick="setPeriod('365d',this)">1 year</button>
+      <button class="period-tab" onclick="setPeriod('all',this)">All time</button>
+    </div>
+    <div id="profitContent"></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="page" id="page-stats">
+    <div id="statsContent"></div>
+  </div>
+
+  <!-- OTHER EXPENSES -->
+  <div class="page" id="page-expenses">
+    <div class="page-header">
+      <span class="section-title">Other Expenses</span>
+      <button class="btn btn-primary" onclick="openAddExpense()"><i class="ti ti-plus"></i> Add expense</button>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Subscriptions, shipping supplies, browser fees, packaging — anything that reduces your net profit. These are factored into all Profit calculations.</div>
+    <div id="expenseList"></div>
+    <div id="emptyExpenses" class="empty-state" style="display:none;">
+      <i class="ti ti-receipt"></i>
+      <p>No expenses yet. Add recurring or one-off costs.</p>
+    </div>
+  </div>
+</div>
+
+<div id="modalContainer"></div>
+<div id="toastContainer"></div>
+
+<script>
+/* ─────────────────────────────────────────────────
+   STORAGE — triple-write: localStorage (primary)
+   + IndexedDB (robust fallback)
+   + in-memory (always works)
+───────────────────────────────────────────────── */
+const SK = 'sporttrack_v3';
+let state = { items: [], orders: [], accounts: [], expenses: [], filter: 'all', period: '7d' };
+let viewTab = 'active'; // 'active' | 'archive'
+let viewMode = 'grid';  // 'grid' | 'table'
+let accFilters = { type: 'all', safety: 'all', status: 'all' };
+let autoArchiveDays = 30; // loaded from localStorage separately
+
+function saveArchiveSettings() {
+  const sel = document.getElementById('autoArchiveDays');
+  if (sel) autoArchiveDays = parseInt(sel.value) || 0;
+  try { localStorage.setItem('sporttrack_archive_days', String(autoArchiveDays)); } catch(e) {}
+}
+function loadArchiveSettings() {
+  try {
+    const v = localStorage.getItem('sporttrack_archive_days');
+    if (v !== null) autoArchiveDays = parseInt(v) || 0;
+    const sel = document.getElementById('autoArchiveDays');
+    if (sel) sel.value = String(autoArchiveDays);
+  } catch(e) {}
+}
+
+// Returns true if item should be auto-archived (sold/completed + old enough)
+function isAutoArchived(item) {
+  if (autoArchiveDays === 0) return false;
+  if (item.status !== 'sold' && item.status !== 'completed') return false;
+  if (!item.sellDate) return false;
+  const age = (Date.now() - new Date(item.sellDate)) / 86400000;
+  return age >= autoArchiveDays;
+}
+
+// Returns true if item is archived (manual OR auto)
+function isArchived(item) {
+  return item.archived === true || isAutoArchived(item);
+}
+let _idb = null;
+function openIDB() {
+  return new Promise((res, rej) => {
+    if (_idb) { res(_idb); return; }
+    const req = indexedDB.open('SportTrack', 1);
+    req.onupgradeneeded = e => {
+      e.target.result.createObjectStore('kv');
+    };
+    req.onsuccess = e => { _idb = e.target.result; res(_idb); };
+    req.onerror   = () => rej(req.error);
+  });
+}
+function idbSet(val) {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(val, SK);
+    tx.oncomplete = res;
+    tx.onerror    = () => rej(tx.error);
+  })).catch(() => {});
+}
+function idbGet() {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const req = db.transaction('kv', 'readonly').objectStore('kv').get(SK);
+    req.onsuccess = () => res(req.result);
+    req.onerror   = () => rej(req.error);
+  })).catch(() => null);
+}
+
+// ── Save: write to both storages ──────────────
+function save() {
+  const json = JSON.stringify(state);
+  // localStorage
+  try { localStorage.setItem(SK, json); } catch(e) {}
+  // IndexedDB (async, non-blocking)
+  idbSet(json).catch(() => {});
+  updateStorageIndicator();
+}
+
+// ── Load: try localStorage first, then IDB ────
+async function loadData() {
+  let data = null;
+
+  // 1) Try localStorage
+  try {
+    const raw = localStorage.getItem(SK);
+    if (raw) data = JSON.parse(raw);
+  } catch(e) {}
+
+  // 2) If localStorage empty/failed, try IndexedDB
+  if (!data) {
+    try {
+      const raw = await idbGet();
+      if (raw) data = JSON.parse(raw);
+    } catch(e) {}
+  }
+
+  // 3) If still nothing, try all legacy keys
+  if (!data) {
+    for (const legacyKey of ['sporttrack_v2', 'sporttrack_v1']) {
+      try {
+        const raw = localStorage.getItem(legacyKey);
+        if (raw) { data = JSON.parse(raw); break; }
+      } catch(e) {}
+    }
+  }
+
+  if (data) {
+    // Migrate old statuses
+    if (data.items) data.items = data.items.map(i => {
+      if (i.status === 'available') i.status = 'listed';
+      return i;
+    });
+    state = Object.assign({ filter:'all', period:'7d', accounts:[] }, data);
+    // Re-save under new key to consolidate
+    save();
+  }
+  updateStorageIndicator();
+}
+
+function updateStorageIndicator() {
+  const el = document.getElementById('storageIndicator');
+  const st = document.getElementById('storageStatus');
+  if (!el || !st) return;
+  try {
+    const test = localStorage.getItem(SK);
+    if (test) {
+      el.className = 'ok';
+      const parsed = JSON.parse(test);
+      st.textContent = `Saved · ${(parsed.items||[]).length} items`;
+    } else {
+      el.className = 'err';
+      st.textContent = 'Not saved!';
+    }
+  } catch(e) {
+    el.className = 'err';
+    st.textContent = 'Storage error';
+  }
+}
+
+// ── Toast notification ─────────────────────────
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function toastUndo(msg, undoFn) {
+  // Each deletion gets its own toast that stacks vertically
+  const t = document.createElement('div');
+  t.className = 'toast with-undo';
+  const undoId = uid();
+  t.dataset.undoId = undoId;
+  t.innerHTML = `<span>${msg}</span><button class="toast-undo-btn" onclick="undoAction('${undoId}')">UNDO</button>`;
+  document.getElementById('toastContainer').appendChild(t);
+  // Reposition all stacked undo toasts from bottom up
+  repositionUndoToasts();
+  const timer = setTimeout(() => { t.remove(); repositionUndoToasts(); delete window._undoStack[undoId]; }, 10000);
+  if (!window._undoStack) window._undoStack = {};
+  window._undoStack[undoId] = { fn: undoFn, timer, el: t };
+}
+
+function undoAction(undoId) {
+  if (!window._undoStack || !window._undoStack[undoId]) return;
+  const entry = window._undoStack[undoId];
+  clearTimeout(entry.timer);
+  entry.el.remove();
+  delete window._undoStack[undoId];
+  repositionUndoToasts();
+  entry.fn();
+}
+
+function repositionUndoToasts() {
+  const toasts = [...document.querySelectorAll('.toast.with-undo')];
+  toasts.forEach((t, i) => {
+    t.style.bottom = (24 + i * 48) + 'px';
+    t.style.animation = 'none'; // keep visible, no fade-out re-trigger
+  });
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+/* ─────────────────────────────────────────────────
+   LABELS / BADGES
+───────────────────────────────────────────────── */
+const STATUS_LABEL = { listed:'Listed', unlisted:'Unlisted', sold:'Sold', transit:'In Transit', completed:'Completed', problem:'Problem' };
+const ORDER_LABEL  = { pending:'Pending', received:'Received', cancelled:'Cancelled' };
+const ORDER_CLS    = { pending:'badge-order-pending', received:'badge-order-received', cancelled:'badge-order-cancelled' };
+
+function statusBadge(s) { return `<span class="badge badge-${s}">${STATUS_LABEL[s]||s}</span>`; }
+function orderBadge(s)  { return `<span class="badge ${ORDER_CLS[s]||'badge-order-pending'}">${ORDER_LABEL[s]||s}</span>`; }
+function getAccountName(id) {
+  if (!id) return null;
+  const a = state.accounts.find(a => a.id === id);
+  return a ? a.name + (a.platform ? ` (${a.platform})` : '') : null;
+}
+
+/* ─────────────────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────────────────── */
+function switchPage(p) {
+  try {
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('page-' + p).classList.add('active');
+    const idx = ['inventory','orders','accounts','profit','stats','expenses'].indexOf(p);
+    if (idx >= 0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+    if (p === 'profit')    renderProfit();
+    if (p === 'stats')     renderStats();
+    if (p === 'inventory') { updateFilterDropdowns(); renderInventory(); }
+    if (p === 'orders')    renderOrders();
+    if (p === 'accounts')  renderAccounts();
+    if (p === 'expenses')  renderExpenses();
+  } catch(e) { console.error('switchPage error:', e); }
+}
+
+function setFilter(f, btn) {
+  state.filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderInventory();
+}
+
+function setPeriod(p, btn) {
+  state.period = p;
+  document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProfit();
+}
+
+/* ─────────────────────────────────────────────────
+   FILTER DROPDOWNS
+───────────────────────────────────────────────── */
+function updateFilterDropdowns() {
+  try {
+    const clubs = [...new Set(state.items.map(i => i.club).filter(Boolean))].sort();
+    const cf = document.getElementById('clubFilter');
+    const cv = cf ? cf.value : '';
+    if (cf) {
+      cf.innerHTML = '<option value="">All clubs</option>' +
+        clubs.map(c => `<option value="${esc(c)}"${cv===c?' selected':''}>${esc(c)}</option>`).join('');
+    }
+    const af = document.getElementById('accountFilter');
+    const av = af ? af.value : '';
+    if (af) {
+      af.innerHTML = '<option value="">All accounts</option>' +
+        state.accounts.map(a => `<option value="${esc(a.id)}"${av===a.id?' selected':''}>${esc(a.name)}${a.platform?' ('+esc(a.platform)+')':''}</option>`).join('');
+    }
+  } catch(e) { console.error('updateFilterDropdowns error:', e); }
+}
+
+/* ─────────────────────────────────────────────────
+   STATUS FLOW & QUICK ACTIONS
+───────────────────────────────────────────────── */
+// Order: transit -> unlisted -> listed -> sold -> completed
+const STATUS_FLOW = ['transit','unlisted','listed','sold','completed'];
+const STATUS_NEXT_LABEL = {
+  transit:   { label: 'Mark as Unlisted',       icon: 'ti-eye-off'      },
+  unlisted:  { label: 'Mark as Listed',          icon: 'ti-eye'          },
+  listed:    { label: 'Mark as Sold & Shipped',  icon: 'ti-truck'        },
+  sold:      { label: 'Mark as Completed',       icon: 'ti-circle-check' },
+  completed: null,
+  problem:   null,
+};
+
+function quickAdvanceStatus(id, e) {
+  e.stopPropagation();
+  const item = state.items.find(i=>i.id===id);
+  if (!item) return;
+  const idx = STATUS_FLOW.indexOf(item.status);
+  if (idx === -1 || idx === STATUS_FLOW.length-1) return;
+  const next = STATUS_FLOW[idx+1];
+  item.status = next;
+  save();
+  if (viewTab === 'active') renderInventory();
+  else renderArchive();
+  toast(`→ ${STATUS_LABEL[next]}`);
+}
+
+function quickReportProblem(id, e) {
+  e.stopPropagation();
+  const item = state.items.find(i=>i.id===id);
+  if (!item) return;
+  item.status = 'problem';
+  save();
+  if (viewTab === 'active') renderInventory();
+  else renderArchive();
+  toast('⚠ Problem reported.');
+}
+
+function quickDelete(id, e) {
+  e.stopPropagation();
+  const item = state.items.find(i => i.id === id);
+  if (!item) return;
+  const idx = state.items.indexOf(item);
+  state.items = state.items.filter(i => i.id !== id);
+  save();
+  if (viewTab === 'active') renderInventory();
+  else renderArchive();
+  toastUndo(`"${item.name}" deleted.`, () => {
+    state.items.splice(idx, 0, item);
+    save();
+    if (viewTab === 'active') renderInventory();
+    else renderArchive();
+    toast('Restored.');
+  });
+}
+
+function setAccFilter(dim, val, btn) {
+  accFilters[dim] = val;
+  // deactivate siblings in this group
+  const groups = { type: ['accTypeAll','accTypeSelling','accTypeBuying','accTypeBoth'], safety: ['accSafeAll','accSafeSafe','accSafeSemi','accSafeUnsafe'], status: ['accStAll','accStActive','accStSuspended','accStBlocked'] };
+  groups[dim].forEach(id => { const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  renderAccounts();
+}
+
+/* ─────────────────────────────────────────────────
+   VIEW MODE (Grid / Table)
+───────────────────────────────────────────────── */
+function setViewMode(mode) {
+  viewMode = mode;
+  document.getElementById('vmGrid').classList.toggle('active',  mode==='grid');
+  document.getElementById('vmTable').classList.toggle('active', mode==='table');
+  if (viewTab === 'active')  renderInventory();
+  else                       renderArchive();
+}
+
+/* ─────────────────────────────────────────────────
+   VIEW TABS (Active / Archive)
+───────────────────────────────────────────────── */
+function setViewTab(tab) {
+  viewTab = tab;
+  document.getElementById('viewTabActive').classList.toggle('active', tab==='active');
+  document.getElementById('viewTabArchive').classList.toggle('active', tab==='archive');
+  document.getElementById('activeFilters').style.display  = tab==='active'  ? '' : 'none';
+  document.getElementById('archiveFilters').style.display = tab==='archive' ? '' : 'none';
+  document.getElementById('emptyInventory').style.display = 'none';
+  document.getElementById('emptyArchive').style.display   = 'none';
+  if (tab === 'active')  renderInventory();
+  else                   renderArchive();
+}
+
+function updateArchiveBadge() {
+  const count = state.items.filter(i => isArchived(i)).length;
+  const el = document.getElementById('archiveCount');
+  if (el) el.textContent = count;
+}
+
+function archiveItem(id) {
+  const item = state.items.find(i=>i.id===id);
+  if (!item) return;
+  item.archived = true;
+  save(); closeModal(); renderInventory(); toast('Item archived.');
+}
+
+function unarchiveItem(id) {
+  const item = state.items.find(i=>i.id===id);
+  if (!item) return;
+  item.archived = false;
+  save(); renderArchive(); toast('Item restored to inventory.');
+}
+
+function renderArchive() {
+  try {
+    loadArchiveSettings();
+    const q = (document.getElementById('archiveSearch')?.value || '').toLowerCase();
+    let items = state.items.filter(i => isArchived(i));
+    if (q) items = items.filter(i => (i.name+' '+(i.description||'')+' '+(i.buyer||'')+' '+(i.club||'')).toLowerCase().includes(q));
+    items = [...items].reverse(); // newest archived first
+
+    document.getElementById('inventoryCount').textContent = `${items.length} archived item${items.length!==1?'s':''}`;
+    const grid  = document.getElementById('itemGrid');
+    const empty = document.getElementById('emptyArchive');
+    document.getElementById('emptyInventory').style.display = 'none';
+    if (!items.length) { grid.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display = 'none';
+    updateArchiveBadge();
+
+    grid.innerHTML = items.map(item => {
+      const p = (item.sellPrice&&item.buyPrice) ? (parseFloat(item.sellPrice)-parseFloat(item.buyPrice)) : null;
+      const photoEl = item.photo
+        ? `<div class="item-photo-wrap"><img src="${esc(item.photo)}" loading="lazy" /></div>`
+        : `<div class="item-photo-wrap"><i class="ti ti-shirt"></i></div>`;
+      const autoArc = isAutoArchived(item) && !item.archived;
+      return `<div class="item-card archived-card" onclick="openArchivedDetail('${item.id}')">
+        ${photoEl}
+        <div class="item-name">${esc(item.name)}<span class="archived-badge">${autoArc?'AUTO':'ARCHIVED'}</span></div>
+        ${item.club?`<div class="item-club"><span class="club-pill">${esc(item.club)}</span></div>`:''}
+        <div class="item-desc">${esc(item.description||'')}</div>
+        ${statusBadge(item.status)}
+        <div class="item-prices">
+          <span style="color:var(--text2);">Buy: <b>${item.buyPrice?item.buyPrice+' zł':'—'}</b></span>
+          ${p!==null?`<span style="color:${p>=0?'var(--green)':'var(--red)'};font-weight:600;">${p>=0?'+':''}${p.toFixed(0)} zł</span>`:''}
+        </div>
+        ${item.sellDate?`<div style="font-size:11px;color:var(--text3);margin-top:5px;"><i class="ti ti-calendar" style="font-size:10px;"></i> ${item.sellDate}</div>`:''}
+      </div>`;
+    }).join('');
+  } catch(e) { console.error('renderArchive error:', e); }
+}
+
+function openArchivedDetail(id) {
+  const item = state.items.find(i=>i.id===id);
+  if (!item) return;
+  const profit = (item.sellPrice&&item.buyPrice)?(parseFloat(item.sellPrice)-parseFloat(item.buyPrice)):null;
+  const autoArc = isAutoArchived(item) && !item.archived;
+  showModal(`<div class="modal">
+    <div class="modal-title">${esc(item.name)} <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    ${item.photo?`<img class="detail-photo" src="${esc(item.photo)}" />`:''}
+    <div class="detail-row"><span class="detail-key">Status</span>${statusBadge(item.status)}</div>
+    ${item.club?`<div class="detail-row"><span class="detail-key">Club</span><span class="club-pill">${esc(item.club)}</span></div>`:''}
+    <div class="detail-row"><span class="detail-key">Buy price</span><span>${item.buyPrice?item.buyPrice+' zł':'—'}</span></div>
+    <div class="detail-row"><span class="detail-key">Sell price</span><span>${item.sellPrice?item.sellPrice+' zł':'—'}</span></div>
+    ${profit!==null?`<div class="detail-row"><span class="detail-key">Profit</span><span style="color:${profit>=0?'var(--green)':'var(--red)'};font-weight:600;">${profit>=0?'+':''}${profit.toFixed(2)} zł</span></div>`:''}
+    <div class="detail-row"><span class="detail-key">Buyer</span><span>${esc(item.buyer||'—')}</span></div>
+    <div class="detail-row"><span class="detail-key">Sale date</span><span>${item.sellDate||'—'}</span></div>
+    ${autoArc?`<div style="font-size:12px;color:var(--text3);margin-top:10px;"><i class="ti ti-info-circle"></i> Auto-archived because it was sold more than ${autoArchiveDays} days ago.</div>`:''}
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deleteItem('${item.id}')"><i class="ti ti-trash"></i> Delete</button>
+      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary" onclick="unarchiveItem('${item.id}')"><i class="ti ti-arrow-back-up"></i> Restore</button>
+    </div>
+  </div>`);
+}
+
+
+function renderInventory() {
+  try {
+    loadArchiveSettings();
+    updateArchiveBadge();
+    updateFilterDropdowns();
+    document.getElementById('emptyArchive').style.display = 'none';
+    const q        = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const clubF    = document.getElementById('clubFilter')?.value    || '';
+    const accountF = document.getElementById('accountFilter')?.value || '';
+    const sortBy   = document.getElementById('sortBy')?.value        || 'newest';
+
+    // Exclude archived items
+    let items = state.items.filter(i => !isArchived(i));
+    if (state.filter !== 'all') items = items.filter(i => i.status === state.filter);
+    if (q)        items = items.filter(i => (i.name+' '+(i.description||'')+' '+(i.buyer||'')+' '+(i.club||'')).toLowerCase().includes(q));
+    if (clubF)    items = items.filter(i => i.club === clubF);
+    if (accountF) items = items.filter(i => i.accountId === accountF);
+
+    const num = v => parseFloat(v) || 0;
+    const profitOf = i => num(i.sellPrice) - num(i.buyPrice);
+    const withIdx  = items.map(i => ({ ...i, _idx: state.items.indexOf(i) }));
+    const sorts = {
+      newest:      (a,b) => b._idx - a._idx,
+      oldest:      (a,b) => a._idx - b._idx,
+      name_asc:    (a,b) => (a.name||'').localeCompare(b.name||''),
+      name_desc:   (a,b) => (b.name||'').localeCompare(a.name||''),
+      buy_asc:     (a,b) => num(a.buyPrice)  - num(b.buyPrice),
+      buy_desc:    (a,b) => num(b.buyPrice)  - num(a.buyPrice),
+      sell_asc:    (a,b) => num(a.sellPrice) - num(b.sellPrice),
+      sell_desc:   (a,b) => num(b.sellPrice) - num(a.sellPrice),
+      profit_desc: (a,b) => profitOf(b) - profitOf(a),
+      profit_asc:  (a,b) => profitOf(a) - profitOf(b),
+      club_asc:    (a,b) => (a.club||'').localeCompare(b.club||''),
+    };
+    withIdx.sort(sorts[sortBy] || sorts.newest);
+
+    const activeCount = state.items.filter(i => !isArchived(i)).length;
+    document.getElementById('inventoryCount').textContent = `${withIdx.length} of ${activeCount} active items`;
+    const gridEl  = document.getElementById('itemGrid');
+    const tableEl = document.getElementById('itemTable');
+    const empty   = document.getElementById('emptyInventory');
+    if (!withIdx.length) {
+      gridEl.innerHTML=''; gridEl.style.display='none';
+      tableEl.innerHTML=''; tableEl.style.display='none';
+      empty.style.display='block'; return;
+    }
+    empty.style.display = 'none';
+
+    if (viewMode === 'grid') {
+      tableEl.style.display = 'none';
+      gridEl.style.display  = '';
+      gridEl.innerHTML = withIdx.map(item => {
+        const p = (item.sellPrice && item.buyPrice) ? (parseFloat(item.sellPrice) - parseFloat(item.buyPrice)) : null;
+        const photoEl = item.photo
+          ? `<div class="item-photo-wrap"><img src="${esc(item.photo)}" alt="${esc(item.name)}" loading="lazy" /></div>`
+          : `<div class="item-photo-wrap"><i class="ti ti-shirt"></i></div>`;
+        const accName = getAccountName(item.accountId);
+        const nextInfo = STATUS_NEXT_LABEL[item.status];
+        const quickHtml = `<div class="quick-actions" onclick="event.stopPropagation()">
+          ${nextInfo ? `<button class="quick-next-btn" onclick="quickAdvanceStatus('${item.id}',event)"><i class="ti ${nextInfo.icon}"></i> ${nextInfo.label} <span class="arrow" style="margin-left:auto;">→</span></button>` : ''}
+          <div class="quick-divider"></div>
+          <button class="quick-problem-btn" onclick="quickReportProblem('${item.id}',event)"><i class="ti ti-alert-triangle"></i> Report problem</button>
+          <button class="quick-problem-btn" style="background:rgba(0,0,0,0.7);margin-top:2px;" onclick="quickDelete('${item.id}',event)"><i class="ti ti-trash"></i> Delete item</button>
+        </div>`;
+        return `<div class="item-card" onclick="openDetail('${item.id}')">
+          ${photoEl}
+          <div class="item-name">${esc(item.name)}</div>
+          ${item.club ? `<div class="item-club"><span class="club-pill"><i class="ti ti-shield" style="font-size:10px;"></i> ${esc(item.club)}</span></div>` : ''}
+          <div class="item-desc">${esc(item.description||'')}</div>
+          ${statusBadge(item.status)}
+          <div class="item-prices">
+            <span style="color:var(--text2);">Buy: <b>${item.buyPrice ? item.buyPrice+' zł' : '—'}</b></span>
+            ${p !== null ? `<span style="color:${p>=0?'var(--green)':'var(--red)'};font-weight:600;">${p>=0?'+':''}${p.toFixed(0)} zł</span>` : ''}
+          </div>
+          ${accName ? `<div class="item-account"><i class="ti ti-user" style="font-size:10px;"></i> ${esc(accName)}</div>` : ''}
+          ${quickHtml}
+        </div>`;
+      }).join('');
+    } else {
+      // TABLE VIEW
+      gridEl.style.display  = 'none';
+      tableEl.style.display = '';
+      const tblSortBy = sortBy;
+      tableEl.innerHTML = `<table class="inv-table">
+        <thead><tr>
+          <th class="col-thumb"></th>
+          <th class="col-name" onclick="tableSortClick('name_asc','name_desc')">Name <span class="sort-icon ti ti-arrows-sort"></span></th>
+          <th onclick="tableSortClick('club_asc','club_asc')">Club <span class="sort-icon ti ti-arrows-sort"></span></th>
+          <th>Status</th>
+          <th onclick="tableSortClick('buy_asc','buy_desc')">Buy <span class="sort-icon ti ti-arrows-sort"></span></th>
+          <th onclick="tableSortClick('sell_asc','sell_desc')">Sell <span class="sort-icon ti ti-arrows-sort"></span></th>
+          <th onclick="tableSortClick('profit_desc','profit_asc')">Profit <span class="sort-icon ti ti-arrows-sort"></span></th>
+          <th>Account</th>
+          <th>Buyer</th>
+          <th onclick="tableSortClick('newest','oldest')">Sale date <span class="sort-icon ti ti-arrows-sort"></span></th>
+        </tr></thead>
+        <tbody>
+          ${withIdx.map(item => {
+            const p = (item.sellPrice && item.buyPrice) ? (parseFloat(item.sellPrice) - parseFloat(item.buyPrice)) : null;
+            const accName = getAccountName(item.accountId);
+            const thumbEl = item.photo
+              ? `<div class="thumb"><img src="${esc(item.photo)}" /></div>`
+              : `<div class="thumb"><i class="ti ti-shirt"></i></div>`;
+            return `<tr onclick="openDetail('${item.id}')">
+              <td class="col-thumb">${thumbEl}</td>
+              <td class="col-name">
+                <div class="col-name-cell">${esc(item.name)}</div>
+                ${item.description ? `<div class="col-name-sub">${esc(item.description)}</div>` : ''}
+              </td>
+              <td>${item.club ? `<span class="club-pill">${esc(item.club)}</span>` : '<span style="color:var(--text3);">—</span>'}</td>
+              <td>${statusBadge(item.status)}</td>
+              <td>${item.buyPrice  ? item.buyPrice+' zł'  : '<span style="color:var(--text3);">—</span>'}</td>
+              <td>${item.sellPrice ? item.sellPrice+' zł' : '<span style="color:var(--text3);">—</span>'}</td>
+              <td>${p !== null ? `<span class="${p>=0?'profit-pos':'profit-neg'}">${p>=0?'+':''}${p.toFixed(0)} zł</span>` : '<span style="color:var(--text3);">—</span>'}</td>
+              <td>${accName ? esc(accName) : '<span style="color:var(--text3);">—</span>'}</td>
+              <td>${item.buyer ? esc(item.buyer) : '<span style="color:var(--text3);">—</span>'}</td>
+              <td style="white-space:nowrap;">${item.sellDate || '<span style="color:var(--text3);">—</span>'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+    }
+  } catch(e) { console.error('renderInventory error:', e); }
+}
+
+function tableSortClick(asc, desc) {
+  const sel = document.getElementById('sortBy');
+  if (!sel) return;
+  sel.value = (sel.value === asc) ? desc : asc;
+  renderInventory();
+}
+
+/* ─────────────────────────────────────────────────
+   ACCOUNTS
+───────────────────────────────────────────────── */
+
+function getAccountStatusInfo(a) {
+  const st = a.accountStatus || 'active';
+  if (st === 'active') return { st, label: 'Active', cls: 'acc-status-active' };
+  if (st === 'blocked') return { st, label: 'Blocked', cls: 'acc-status-blocked' };
+  // suspended — check if expired
+  if (a.accountStatusUntil) {
+    const until = new Date(a.accountStatusUntil);
+    if (until <= new Date()) return { st: 'active', label: 'Active (restored)', cls: 'acc-status-active', expired: true };
+    const daysLeft = Math.ceil((until - new Date()) / 86400000);
+    return { st, label: `Suspended · ${daysLeft}d left`, cls: 'acc-status-suspended', daysLeft, until };
+  }
+  return { st, label: 'Suspended', cls: 'acc-status-suspended' };
+}
+
+/* ─────────────────────────────────────────────────
+   WALLET
+───────────────────────────────────────────────── */
+function getWalletBalance(a) {
+  // auto = sum of sell prices of sold/completed items on this account
+  const autoBalance = state.items
+    .filter(i => i.accountId === a.id && (i.status==='sold'||i.status==='completed'))
+    .reduce((s,i) => s + (parseFloat(i.sellPrice)||0), 0);
+  const balance = (a.walletOverride !== '' && a.walletOverride != null)
+    ? Number(a.walletOverride)
+    : autoBalance;
+  return { balance, autoBalance, isManual: a.walletOverride !== '' && a.walletOverride != null };
+}
+
+function withdrawWallet(id) {
+  const a = state.accounts.find(x=>x.id===id);
+  if (!a) return;
+  const { balance } = getWalletBalance(a);
+  if (balance <= 0) { toast('Nothing to withdraw.'); return; }
+  const method = a.withdrawMethod || 'unspecified method';
+  if (!a.withdrawHistory) a.withdrawHistory = [];
+  a.withdrawHistory.unshift({ date: new Date().toISOString().slice(0,10), amount: balance, method });
+  a.walletOverride = 0;
+  save(); renderAccounts();
+  toast(`Withdrawn ${balance.toFixed(2)} zł via ${method}.`);
+}
+
+function openWalletEdit(id) {
+  const a = state.accounts.find(x=>x.id===id);
+  if (!a) return;
+  const { balance, autoBalance, isManual } = getWalletBalance(a);
+  showModal(`<div class="modal">
+    <div class="modal-title">Wallet — ${esc(a.name)} <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="wallet-block" style="margin-bottom:16px;">
+      <div class="wallet-meta">Current balance</div>
+      <div class="wallet-balance ${balance>0?'positive':balance<0?'negative':'zero'}">${balance.toFixed(2)} zł</div>
+      ${isManual ? `<div class="wallet-meta" style="margin-top:4px;">Manual override · auto would be ${autoBalance.toFixed(2)} zł</div>` : `<div class="wallet-meta" style="margin-top:4px;">Auto-calculated from sales</div>`}
+    </div>
+    <div class="form-row">
+      <label class="form-label">Override balance (zł) — leave blank for auto</label>
+      <input type="number" id="wm_override" value="${isManual ? balance : ''}" step="0.01" placeholder="auto (${autoBalance.toFixed(2)} zł)" />
+    </div>
+    <div class="form-row">
+      <label class="form-label">Withdrawal method</label>
+      <select id="wm_method">
+        <option value="" ${!a.withdrawMethod?'selected':''}>— select method —</option>
+        <option value="Revolut"      ${a.withdrawMethod==='Revolut'     ?'selected':''}>Revolut</option>
+        <option value="ZEN"          ${a.withdrawMethod==='ZEN'         ?'selected':''}>ZEN</option>
+        <option value="Wise"         ${a.withdrawMethod==='Wise'        ?'selected':''}>Wise</option>
+        <option value="PayPal"       ${a.withdrawMethod==='PayPal'      ?'selected':''}>PayPal</option>
+        <option value="Bank transfer"${a.withdrawMethod==='Bank transfer'?'selected':''}>Bank transfer</option>
+        <option value="Cash"         ${a.withdrawMethod==='Cash'        ?'selected':''}>Cash</option>
+        <option value="Other"        ${a.withdrawMethod==='Other'       ?'selected':''}>Other</option>
+      </select>
+    </div>
+    ${(a.withdrawHistory||[]).length ? `
+    <div class="withdraw-history">
+      <div style="font-weight:600;margin-bottom:6px;font-size:12px;color:var(--text2);">Withdrawal history</div>
+      ${(a.withdrawHistory||[]).slice(0,5).map(w=>`
+        <div class="withdraw-row">
+          <span>${w.date} · ${esc(w.method||'—')}</span>
+          <span style="font-weight:600;">−${parseFloat(w.amount).toFixed(2)} zł</span>
+        </div>`).join('')}
+    </div>` : ''}
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveWalletEdit('${id}')">Save changes</button>
+      <button class="btn btn-primary" onclick="withdrawFromModal('${id}')"><i class="ti ti-cash"></i> Withdraw & Reset</button>
+    </div>
+  </div>`);
+}
+
+function saveWalletEdit(id) {
+  const a = state.accounts.find(x=>x.id===id);
+  if (!a) return;
+  const ov = document.getElementById('wm_override').value.trim();
+  a.walletOverride  = ov !== '' ? parseFloat(ov) : '';
+  a.withdrawMethod  = document.getElementById('wm_method').value;
+  save(); closeModal(); renderAccounts(); toast('Wallet updated.');
+}
+
+function withdrawFromModal(id) {
+  const a = state.accounts.find(x=>x.id===id);
+  if (!a) return;
+  // save method first from modal
+  a.withdrawMethod = document.getElementById('wm_method').value;
+  const { balance } = getWalletBalance(a);
+  if (balance <= 0) { toast('Nothing to withdraw.'); return; }
+  const method = a.withdrawMethod || 'unspecified method';
+  if (!a.withdrawHistory) a.withdrawHistory = [];
+  a.withdrawHistory.unshift({ date: new Date().toISOString().slice(0,10), amount: balance, method });
+  a.walletOverride = 0;
+  save(); closeModal(); renderAccounts();
+  toast(`Withdrawn ${balance.toFixed(2)} zł via ${method}.`);
+}
+
+/* ── Phone type detection ────────────────────────
+   Temp/VoIP: known disposable prefixes (PL & intl),
+   plus keyword patterns in the number string.
+   Real: standard mobile/landline prefixes.
+──────────────────────────────────────────────── */
+function classifyPhone(phone) {
+  if (!phone || !phone.trim()) return 'none';
+  const raw = phone.replace(/\s+/g, '').replace(/-/g,'');
+
+  // Keyword patterns that always mean temp
+  if (/temp|virtual|burner|fake|voip|disposable|sms|receive|anon|otp|onlinesim|smspva|5sim|grizzly|smspool/i.test(phone)) return 'temp';
+
+  // Known VoIP / disposable number blocks (international)
+  const voipPrefixes = [
+    // UK VoIP ranges
+    '+4470','+4756','+4755',
+    // US VoIP / Google Voice
+    '+1800','+1888','+1866','+1877','+1855','+1844','+1833',
+    // DE VoIP
+    '+49800','+49180','+49900',
+    // PL VoIP / disposable (non-standard mobile)
+    '+4839','+4870','+4871','+4872',
+    // Generic: numbers that start with 0000, 9999
+    '0000','9999',
+  ];
+  for (const p of voipPrefixes) { if (raw.startsWith(p)) return 'temp'; }
+
+  // PL real mobile prefixes: +48 5xx, 6xx, 7xx, 45x, 88x, 500-509, 510-519 etc.
+  const plMobile = /^(\+48)?([56789]\d{8})$/;
+  if (plMobile.test(raw)) return 'real';
+
+  // Generic: 9+ digits with country code → likely real
+  if (/^\+\d{9,15}$/.test(raw)) return 'real';
+
+  // 9 digits no prefix → assume PL real mobile
+  if (/^\d{9}$/.test(raw)) return 'real';
+
+  return 'unknown'; // can't determine
+}
+
+function getSafetyStatus(a) {
+  // Buying-only accounts don't need a trust score
+  const type = a.accountType || 'selling';
+  if (type === 'buying') return { label: 'N/A', cls: 'safety-na', cardCls: 'card-neutral', auto: true, skip: true };
+
+  const hasIBAN   = !!(a.iban && a.iban.trim());
+  const phoneType = classifyPhone(a.phone);
+  const realPhone = phoneType === 'real';
+
+  if (a.safetyStatus) {
+    const map = {
+      'safe':      { label: 'SAFE',      cls: 'safety-safe',      cardCls: 'card-safe'      },
+      'semi-safe': { label: 'SEMI-SAFE', cls: 'safety-semi-safe', cardCls: 'card-semi-safe' },
+      'unsafe':    { label: 'UNSAFE',    cls: 'safety-unsafe',    cardCls: 'card-unsafe'    },
+    };
+    return { ...(map[a.safetyStatus] || autoSafety(hasIBAN, realPhone)), phoneType };
+  }
+  return { ...autoSafety(hasIBAN, realPhone), phoneType };
+}
+
+function autoSafety(hasIBAN, realPhone, noPhone) {
+  // SAFE: real IBAN + real phone
+  if (hasIBAN && realPhone)
+    return { label: 'SAFE',      cls: 'safety-safe',      cardCls: 'card-safe',      auto: true };
+  // SEMI-SAFE: real IBAN (any phone)  OR  real phone (any IBAN situation)
+  if (hasIBAN || realPhone)
+    return { label: 'SEMI-SAFE', cls: 'safety-semi-safe', cardCls: 'card-semi-safe', auto: true };
+  // UNSAFE: no IBAN + no real phone
+  return   { label: 'UNSAFE',    cls: 'safety-unsafe',    cardCls: 'card-unsafe',    auto: true };
+}
+
+function renderAccounts() {
+  try {
+    const grid  = document.getElementById('accountGrid');
+    const empty = document.getElementById('emptyAccounts');
+    const q     = (document.getElementById('accSearch')?.value || '').toLowerCase();
+    let accounts = state.accounts;
+    // type filter
+    if (accFilters.type !== 'all') {
+      accounts = accounts.filter(a => {
+        const t = a.accountType || 'selling';
+        if (accFilters.type === 'both')    return t === 'both';
+        if (accFilters.type === 'buying')  return t === 'buying';
+        if (accFilters.type === 'selling') return t === 'selling' || !a.accountType;
+        return true;
+      });
+    }
+    // safety filter
+    if (accFilters.safety !== 'all') {
+      accounts = accounts.filter(a => {
+        const s = getSafetyStatus(a);
+        const key = s.label.toLowerCase().replace('-','').replace(' ','');
+        const fkey = accFilters.safety.replace('-','');
+        return key.startsWith(fkey);
+      });
+    }
+    // status filter
+    if (accFilters.status !== 'all') {
+      accounts = accounts.filter(a => (a.accountStatus||'active') === accFilters.status);
+    }
+    // text search
+    if (q) accounts = accounts.filter(a => (a.name+' '+(a.platform||'')+' '+(a.email||'')+' '+(a.phone||'')+' '+(a.iban||'')).toLowerCase().includes(q));
+    if (!accounts.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    const LIMIT_SOLD = 30;
+    const LIMIT_PLN  = 8000;
+
+    grid.innerHTML = accounts.map(a => {
+      const soldItems   = state.items.filter(i => i.accountId === a.id && (i.status==='sold'||i.status==='completed'));
+      const total       = state.items.filter(i => i.accountId === a.id).length;
+      const listed      = state.items.filter(i => i.accountId === a.id && i.status==='listed').length;
+      const autoSold    = soldItems.length;
+      const autoRevenue = soldItems.reduce((s,i) => s + (parseFloat(i.sellPrice)||0), 0);
+      const soldCount   = (a.manualSold !== '' && a.manualSold != null) ? Number(a.manualSold) : autoSold;
+      const soldRevenue = (a.manualPln  !== '' && a.manualPln  != null) ? Number(a.manualPln)  : autoRevenue;
+      const lSold = a.limitSold || LIMIT_SOLD;
+      const lPln  = a.limitPln  || LIMIT_PLN;
+      const isManualSold = a.manualSold !== '' && a.manualSold != null;
+      const isManualPln  = a.manualPln  !== '' && a.manualPln  != null;
+
+      // classify
+      function cls(val, limit) {
+        const pct = val / limit;
+        if (pct >= 1)   return 'over';
+        if (pct >= 0.8) return 'warn';
+        return 'ok';
+      }
+      const clsSold = cls(soldCount,   lSold);
+      const clsPln  = cls(soldRevenue, lPln);
+      const anyOver = clsSold==='over' || clsPln==='over';
+
+      // bar widths — cap at 100% visually but show overflow spike
+      function barW(val, limit) { return Math.min(val/limit*100, 100).toFixed(1); }
+      const wSold = barW(soldCount,   lSold);
+      const wPln  = barW(soldRevenue, lPln);
+
+      function trackBar(val, limit, c, label, unit, isManual) {
+        const over   = val > limit;
+        const excess = over ? val - limit : 0;
+        const manualBadge = isManual ? `<span style="font-size:10px;background:var(--bg3);color:var(--text3);padding:1px 5px;border-radius:4px;margin-left:4px;">manual</span>` : '';
+        return `
+          <div>
+            <div class="limit-track-label">
+              <span class="limit-track-name">${label}${manualBadge}</span>
+              <span class="limit-track-val ${c}">${unit==='pln' ? val.toFixed(0)+' / '+limit+' zł' : val+' / '+limit}</span>
+            </div>
+            <div class="limit-bar-bg">
+              <div class="limit-bar-fill ${c}" style="width:${over?100:val/limit*100}%;"></div>
+              ${over ? `<div class="limit-bar-overflow"></div>` : ''}
+              <div class="limit-bar-marker"></div>
+            </div>
+            ${over ? `<div class="limit-warning"><i class="ti ti-alert-triangle" style="font-size:12px;"></i> Limit exceeded by ${unit==='pln' ? excess.toFixed(0)+' zł' : excess}</div>` : ''}
+          </div>`;
+      }
+
+      const accSt   = getAccountStatusInfo(a);
+      const safety  = getSafetyStatus(a);
+      const isNotActive = accSt.st !== 'active';
+      const cardBorder = isNotActive ? (accSt.st==='blocked'?'border-color:rgba(226,75,74,0.5);':'border-color:rgba(217,119,6,0.5);') : (anyOver?'border-color:rgba(226,75,74,0.4);':'');
+      return `<div class="account-card ${safety.cardCls}" style="${cardBorder}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+          <div style="min-width:0;">
+            <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+              <div class="account-name">${esc(a.name)}</div>
+              ${(() => { const t=a.accountType||'selling'; return `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg3);color:var(--text2);">${t==='buying'?'📦 BUYING':t==='both'?'↕ BOTH':'🛒 SELLING'}</span>`; })()}
+            </div>
+            <div class="account-platform">${esc(a.platform||'—')}</div>
+            ${a.email   ? `<div style="font-size:12px;color:var(--text2);margin-bottom:2px;"><i class="ti ti-mail" style="font-size:11px;"></i> ${esc(a.email)}</div>` : ''}
+            ${a.browser ? `<div style="font-size:12px;color:var(--text2);margin-bottom:2px;"><i class="ti ti-browser" style="font-size:11px;"></i> ${esc(a.browser)}</div>` : ''}
+            ${a.phone ? (() => {
+              const pt = classifyPhone(a.phone);
+              const ptLabel = pt==='real' ? '<span class="phone-real"> · real</span>' : pt==='temp' ? '<span class="phone-temp"> · temp/VoIP</span>' : '<span style="color:var(--text3)"> · unknown</span>';
+              return `<div style="font-size:12px;color:var(--text2);margin-bottom:2px;"><i class="ti ti-phone" style="font-size:11px;"></i> ${esc(a.phone)}${ptLabel}</div>`;
+            })() : ''}
+            ${a.iban    ? `<div style="font-size:12px;color:var(--text2);margin-bottom:6px;font-family:monospace;letter-spacing:.02em;"><i class="ti ti-building-bank" style="font-size:11px;font-family:sans-serif;"></i> ${esc(a.iban)}</div>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:8px;">
+            ${!safety.skip ? '<span class="safety-badge '+safety.cls+'">'+safety.label+(safety.auto?' <span style="font-weight:400;opacity:.7;">(auto)</span>':'')+"</span>" : ''}
+            <span class="acc-status ${accSt.cls}"><span class="acc-status-dot"></span>${accSt.label}</span>
+            ${anyOver ? `<span style="font-size:10px;font-weight:700;color:var(--red);background:#FCEBEB;padding:2px 7px;border-radius:99px;white-space:nowrap;">LIMIT EXCEEDED</span>` : ''}
+          </div>
+        </div>
+        ${isNotActive && a.accountStatusReason ? `<div style="font-size:12px;background:var(--bg2);border-radius:var(--radius);padding:7px 10px;margin-bottom:10px;color:var(--text2);"><i class="ti ti-message-circle" style="font-size:11px;"></i> ${esc(a.accountStatusReason)}</div>` : ''}
+        ${isNotActive && accSt.until ? `<div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Until: ${accSt.until.toLocaleDateString()}</div>` : ''}
+        <div class="account-stats" style="margin-bottom:12px;">
+          <span><b>${total}</b> items</span>
+          <span><b>${listed}</b> listed</span>
+        </div>
+        <div class="limit-tracks">
+          ${trackBar(soldCount,   lSold, clsSold, 'Items sold',   'count', isManualSold)}
+          ${trackBar(soldRevenue, lPln,  clsPln,  'Revenue',      'pln',   isManualPln)}
+        </div>
+        ${(isManualSold||isManualPln) ? `<div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Auto: ${autoSold} sold · ${autoRevenue.toFixed(0)} zł revenue</div>` : ''}
+        ${a.notes ? `<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">${esc(a.notes)}</div>` : ''}
+        ${(() => {
+          const w = getWalletBalance(a);
+          const lastW = (a.withdrawHistory||[])[0];
+          return `<div class="wallet-block">
+            <div class="wallet-meta">Wallet balance</div>
+            <div class="wallet-balance ${w.balance>0?'positive':w.balance<0?'negative':'zero'}">${w.balance.toFixed(2)} zł</div>
+            ${w.isManual ? `<div class="wallet-meta">Manual · auto: ${w.autoBalance.toFixed(2)} zł</div>` : '<div class="wallet-meta">Auto-calculated from sales</div>'}
+            ${a.withdrawMethod ? `<div class="wallet-method"><i class="ti ti-credit-card" style="font-size:11px;"></i> ${esc(a.withdrawMethod)}</div>` : ''}
+            ${lastW ? `<div class="wallet-meta" style="margin-top:6px;">Last withdrawal: ${lastW.date} · ${parseFloat(lastW.amount).toFixed(2)} zł</div>` : ''}
+            <div class="wallet-actions">
+              <button class="btn btn-sm" onclick="event.stopPropagation();openWalletEdit('${a.id}')"><i class="ti ti-wallet"></i> Manage</button>
+              ${w.balance>0 ? `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();withdrawWallet('${a.id}')"><i class="ti ti-cash"></i> Withdraw</button>` : ''}
+            </div>
+          </div>`;
+        })()}
+        <div class="account-actions">
+          <button class="btn btn-sm" onclick="openEditAccount('${a.id}')"><i class="ti ti-edit"></i> Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteAccountWithUndo('${a.id}')"><i class="ti ti-trash"></i> Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error('renderAccounts error:', e); }
+}
+
+function accountModalFields(a) {
+  const soldCount   = a ? state.items.filter(i=>i.accountId===a.id&&(i.status==='sold'||i.status==='completed')).length : 0;
+  const soldRevenue = a ? state.items.filter(i=>i.accountId===a.id&&(i.status==='sold'||i.status==='completed')).reduce((s,i)=>s+(parseFloat(i.sellPrice)||0),0) : 0;
+  const limitSold = a?.limitSold ?? 30;
+  const limitPln  = a?.limitPln  ?? 8000;
+  const manualSold = a?.manualSold ?? '';
+  const manualPln  = a?.manualPln  ?? '';
+  const email   = a?.email   || '';
+  const browser = a?.browser || '';
+  const phone   = a?.phone   || '';
+  const iban    = a?.iban    || '';
+  const accStatus      = a?.accountStatus      || 'active';
+  const accStatusDays  = a?.accountStatusDays  || 30;
+  const accStatusUntil = a?.accountStatusUntil || '';
+  const accStatusReason= a?.accountStatusReason|| '';
+  return `
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;">Account Status</div>
+    <div class="form-row">
+      <label class="form-label">Status</label>
+      <select id="a_status" onchange="toggleStatusExtra()" style="margin-bottom:8px;">
+        <option value="active"    ${accStatus==='active'   ?'selected':''}>Active</option>
+        <option value="suspended" ${accStatus==='suspended'?'selected':''}>Suspended</option>
+        <option value="blocked"   ${accStatus==='blocked'  ?'selected':''}>Blocked</option>
+      </select>
+      <div id="a_status_extra" class="${accStatus!=='active'?'visible':''}">
+        <div id="a_status_duration" style="${accStatus==='blocked'?'display:none;':''}">
+          <div class="form-row-2" style="margin-bottom:10px;">
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Duration (days)</label>
+              <input type="number" id="a_status_days" value="${accStatusDays}" min="1" step="1" placeholder="30" oninput="updateStatusUntil()" />
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Until date (auto-calculated)</label>
+              <input type="date" id="a_status_until" value="${accStatusUntil}" readonly style="background:var(--bg2);cursor:default;" />
+            </div>
+          </div>
+        </div>
+        ${accStatus==='blocked' ? `<div style="font-size:12px;color:var(--red);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ti ti-ban"></i> Permanent — no duration</div>` : ''}
+        <div id="a_status_blocked_note" style="font-size:12px;color:var(--red);font-weight:600;margin-bottom:10px;display:${accStatus==='blocked'?'flex':'none'};align-items:center;gap:6px;"><i class="ti ti-ban"></i> Permanent — no duration</div>
+        <div class="form-row" style="margin-bottom:0;">
+          <label class="form-label">Reason / note</label>
+          <textarea id="a_status_reason" rows="2" placeholder="e.g. Too many returns, suspicious activity...">${esc(accStatusReason)}</textarea>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;">Account Type</div>
+    <div class="form-row">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border:0.5px solid var(--border2);border-radius:var(--radius);font-size:13px;font-weight:600;transition:all .15s;" id="type_sell_lbl">
+          <input type="radio" name="a_type" id="a_type_selling" value="selling" ${(!a?.accountType||a?.accountType==='selling')?'checked':''} onchange="updateTypeLabels()" style="width:auto;accent-color:var(--blue);" /> 🛒 Selling
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border:0.5px solid var(--border2);border-radius:var(--radius);font-size:13px;font-weight:600;transition:all .15s;" id="type_buy_lbl">
+          <input type="radio" name="a_type" id="a_type_buying" value="buying" ${a?.accountType==='buying'?'checked':''} onchange="updateTypeLabels()" style="width:auto;accent-color:var(--blue);" /> 📦 Buying
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border:0.5px solid var(--border2);border-radius:var(--radius);font-size:13px;font-weight:600;transition:all .15s;" id="type_both_lbl">
+          <input type="radio" name="a_type" id="a_type_both" value="both" ${a?.accountType==='both'?'checked':''} onchange="updateTypeLabels()" style="width:auto;accent-color:var(--blue);" /> ↕ Both
+        </label>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;">Contact & Access</div>
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Email address</label>
+        <input type="text" id="a_email" value="${email}" placeholder="e.g. myaccount@gmail.com" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Browser / profile</label>
+        <input type="text" id="a_browser" value="${browser}" placeholder="e.g. Chrome Profile 2, Firefox" />
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Phone number</label>
+        <input type="text" id="a_phone" value="${phone}" placeholder="e.g. +48 600 123 456" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">IBAN</label>
+        <input type="text" id="a_iban" value="${iban}" placeholder="e.g. PL61 1090 1014 0000 0712 1981 2874" />
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;">Safety Status</div>
+    <div class="form-row">
+      <label class="form-label">Safety level <span style="color:var(--text3);font-weight:400;">(auto-detected from IBAN &amp; phone, or override manually)</span></label>
+      <select id="a_safety_status">
+        <option value=""          ${!a?.safetyStatus           ?'selected':''}>Auto-detect</option>
+        <option value="safe"      ${a?.safetyStatus==='safe'      ?'selected':''}>✅ SAFE — real IBAN + real phone</option>
+        <option value="semi-safe" ${a?.safetyStatus==='semi-safe' ?'selected':''}>⚠️ SEMI-SAFE — one of IBAN / phone</option>
+        <option value="unsafe"    ${a?.safetyStatus==='unsafe'    ?'selected':''}>🚫 UNSAFE — no IBAN, no real phone</option>
+      </select>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:4px;margin-top:-8px;">
+      Auto-detect rules: SAFE = real IBAN + real phone · SEMI-SAFE = one of them · UNSAFE = neither.<br>
+      To mark phone as temp/virtual, include "temp", "virtual", "voip" or "burner" in the phone field.
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;">Limits</div>
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Items sold limit</label>
+        <input type="number" id="a_limit_sold" value="${limitSold}" min="1" step="1" placeholder="30" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Revenue limit (zł)</label>
+        <input type="number" id="a_limit_pln" value="${limitPln}" min="1" step="100" placeholder="8000" />
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;">Manual override <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to use auto-counted values)</span></div>
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Items sold override${a ? ` <span style="color:var(--text3);">(auto: ${soldCount})</span>` : ''}</label>
+        <input type="number" id="a_manual_sold" value="${manualSold}" min="0" step="1" placeholder="auto" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Revenue override${a ? ` <span style="color:var(--text3);">(auto: ${soldRevenue.toFixed(0)} zł)</span>` : ''}</label>
+        <input type="number" id="a_manual_pln" value="${manualPln}" min="0" step="0.01" placeholder="auto" />
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;">Wallet</div>
+    <div class="form-row-2">
+      <div class="form-row">
+        <label class="form-label">Balance override (zł) <span style="color:var(--text3);font-weight:400;">blank = auto</span></label>
+        <input type="number" id="a_wallet_override" value="${a?.walletOverride !== '' && a?.walletOverride != null ? a.walletOverride : ''}" step="0.01" placeholder="auto" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Withdrawal method</label>
+        <select id="a_withdraw_method">
+          <option value="" ${!a?.withdrawMethod?'selected':''}>— select —</option>
+          <option value="Revolut"       ${a?.withdrawMethod==='Revolut'      ?'selected':''}>Revolut</option>
+          <option value="ZEN"           ${a?.withdrawMethod==='ZEN'          ?'selected':''}>ZEN</option>
+          <option value="Wise"          ${a?.withdrawMethod==='Wise'         ?'selected':''}>Wise</option>
+          <option value="PayPal"        ${a?.withdrawMethod==='PayPal'       ?'selected':''}>PayPal</option>
+          <option value="Bank transfer" ${a?.withdrawMethod==='Bank transfer'?'selected':''}>Bank transfer</option>
+          <option value="Cash"          ${a?.withdrawMethod==='Cash'         ?'selected':''}>Cash</option>
+          <option value="Other"         ${a?.withdrawMethod==='Other'        ?'selected':''}>Other</option>
+        </select>
+      </div>
+    </div>`;
+}
+
+function updateTypeLabels() {
+  ['sell','buy','both'].forEach(k => {
+    const radio = document.getElementById('a_type_' + (k==='sell'?'selling':k==='buy'?'buying':'both'));
+    const lbl   = document.getElementById('type_' + k + '_lbl');
+    if (radio && lbl) lbl.style.background = radio.checked ? 'var(--text)' : '';
+    if (radio && lbl) lbl.style.color      = radio.checked ? 'var(--bg)'   : '';
+  });
+}
+// call on modal open to apply initial state
+setTimeout(updateTypeLabels, 0);
+
+function toggleStatusExtra() {
+  const sel   = document.getElementById('a_status');
+  const extra = document.getElementById('a_status_extra');
+  const dur   = document.getElementById('a_status_duration');
+  const note  = document.getElementById('a_status_blocked_note');
+  if (!sel || !extra) return;
+  const val = sel.value;
+  extra.classList.toggle('visible', val !== 'active');
+  if (dur)  dur.style.display  = val === 'blocked' ? 'none' : '';
+  if (note) note.style.display = val === 'blocked' ? 'flex' : 'none';
+  if (val === 'suspended') updateStatusUntil();
+}
+
+function updateStatusUntil() {
+  const days = parseInt(document.getElementById('a_status_days')?.value) || 30;
+  const until = new Date();
+  until.setDate(until.getDate() + days);
+  const el = document.getElementById('a_status_until');
+  if (el) el.value = until.toISOString().slice(0, 10);
+}
+
+function openAddAccount() {
+  showModal(`<div class="modal">
+    <div class="modal-title">New account <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Account name *</label><input type="text" id="a_name" placeholder="e.g. my_vinted_account" /></div>
+    <div class="form-row"><label class="form-label">Platform</label><input type="text" id="a_platform" placeholder="e.g. Vinted, Allegro, OLX, eBay..." /></div>
+    <div class="form-row"><label class="form-label">Notes</label><textarea id="a_notes" rows="2" placeholder="Additional info..."></textarea></div>
+    ${accountModalFields(null)}
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAccount()">Save account</button>
+    </div>
+  </div>`);
+}
+
+function openEditAccount(id) {
+  const a = state.accounts.find(x => x.id === id);
+  if (!a) return;
+  showModal(`<div class="modal">
+    <div class="modal-title">Edit account <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Account name *</label><input type="text" id="a_name" value="${esc(a.name)}" /></div>
+    <div class="form-row"><label class="form-label">Platform</label><input type="text" id="a_platform" value="${esc(a.platform||'')}" /></div>
+    <div class="form-row"><label class="form-label">Notes</label><textarea id="a_notes" rows="2">${esc(a.notes||'')}</textarea></div>
+    ${accountModalFields(a)}
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deleteAccount('${id}')"><i class="ti ti-trash"></i> Delete</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAccount('${id}')">Save changes</button>
+    </div>
+  </div>`);
+}
+
+function saveAccount(editId) {
+  const name = document.getElementById('a_name').value.trim();
+  if (!name) { document.getElementById('a_name').style.borderColor='var(--red)'; document.getElementById('a_name').focus(); return; }
+  const manualSoldRaw = document.getElementById('a_manual_sold').value.trim();
+  const manualPlnRaw  = document.getElementById('a_manual_pln').value.trim();
+  const aStatus = document.getElementById('a_status').value;
+  const aStatusDays  = parseInt(document.getElementById('a_status_days')?.value) || 30;
+  const aStatusUntil = document.getElementById('a_status_until')?.value || '';
+  const aStatusReason= document.getElementById('a_status_reason')?.value.trim() || '';
+  const account = {
+    id:         editId||uid(), name,
+    platform:   document.getElementById('a_platform').value.trim(),
+    notes:      document.getElementById('a_notes').value.trim(),
+    accountType: (document.querySelector('input[name=a_type]:checked')?.value || 'selling'),
+    email:      document.getElementById('a_email').value.trim(),
+    safetyStatus: document.getElementById('a_safety_status')?.value || '',
+    browser:    document.getElementById('a_browser').value.trim(),
+    phone:      document.getElementById('a_phone').value.trim(),
+    iban:       document.getElementById('a_iban').value.trim(),
+    accountStatus:       aStatus,
+    accountStatusDays:   aStatus !== 'active' ? aStatusDays  : null,
+    accountStatusUntil:  aStatus !== 'active' ? aStatusUntil : null,
+    accountStatusReason: aStatus !== 'active' ? aStatusReason: '',
+    limitSold:  parseFloat(document.getElementById('a_limit_sold').value) || 30,
+    limitPln:   parseFloat(document.getElementById('a_limit_pln').value)  || 8000,
+    manualSold:      manualSoldRaw !== '' ? parseFloat(manualSoldRaw) : '',
+    manualPln:       manualPlnRaw  !== '' ? parseFloat(manualPlnRaw)  : '',
+    walletOverride:  (() => { const v = document.getElementById('a_wallet_override')?.value.trim(); return v !== '' && v != null ? parseFloat(v) : ''; })(),
+    withdrawMethod:  document.getElementById('a_withdraw_method')?.value || '',
+    withdrawHistory: editId ? (state.accounts.find(a=>a.id===editId)?.withdrawHistory || []) : [],
+  };
+  if (editId) { const idx=state.accounts.findIndex(a=>a.id===editId); if(idx>-1) state.accounts[idx]=account; }
+  else state.accounts.push(account);
+  save(); closeModal(); renderAccounts(); toast(editId ? 'Account updated.' : 'Account saved.');
+}
+
+function deleteAccount(id) {
+  state.accounts = state.accounts.filter(a=>a.id!==id);
+  state.items.forEach(i=>{ if(i.accountId===id) i.accountId=''; });
+  save(); closeModal(); renderAccounts(); toast('Account deleted.');
+}
+
+function deleteAccountWithUndo(id) {
+  const acc = state.accounts.find(a=>a.id===id);
+  if (!acc) return;
+  const accIdx = state.accounts.indexOf(acc);
+  // snapshot linked items' accountId
+  const linkedItems = state.items.filter(i=>i.accountId===id).map(i=>i.id);
+  state.accounts = state.accounts.filter(a=>a.id!==id);
+  state.items.forEach(i=>{ if(i.accountId===id) i.accountId=''; });
+  save(); closeModal(); renderAccounts();
+  toastUndo(`Account "${acc.name}" deleted.`, () => {
+    state.accounts.splice(accIdx, 0, acc);
+    linkedItems.forEach(iid=>{ const item=state.items.find(i=>i.id===iid); if(item) item.accountId=id; });
+    save(); renderAccounts(); toast('Account restored.');
+  });
+}
+
+/* ─────────────────────────────────────────────────
+   ORDERS
+───────────────────────────────────────────────── */
+function renderOrders() {
+  try {
+    const list  = document.getElementById('orderList');
+    const empty = document.getElementById('emptyOrders');
+    if (!state.orders.length) { list.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    list.innerHTML = state.orders.map(o => `
+      <div class="order-card">
+        <div class="order-icon"><i class="ti ti-package" style="font-size:22px;color:var(--text2);"></i></div>
+        <div class="order-info">
+          <div class="order-title">${esc(o.name)}</div>
+          <div class="order-meta">${[o.source, o.date, o.trackingNo?'#'+o.trackingNo:''].filter(Boolean).join(' · ')}</div>
+          <div style="margin-top:6px;">${orderBadge(o.status)} <span style="font-size:12px;color:var(--text2);margin-left:6px;">${o.items||0} pcs.</span></div>
+          ${o.notes?`<div style="font-size:12px;color:var(--text2);margin-top:4px;">${esc(o.notes)}</div>`:''}
+        </div>
+        <div class="order-right">
+          <div class="order-price">${o.cost?o.cost+' zł':'—'}</div>
+          <div class="order-actions">
+            <button class="btn" style="padding:5px 10px;" onclick="event.stopPropagation();openEditOrder('${o.id}')"><i class="ti ti-edit"></i></button>
+            <button class="btn btn-danger" style="padding:5px 10px;" onclick="event.stopPropagation();deleteOrder('${o.id}')"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e) { console.error('renderOrders error:', e); }
+}
+
+/* ─────────────────────────────────────────────────
+   PROFIT
+───────────────────────────────────────────────── */
+function getPeriodItems() {
+  const now = new Date();
+  return state.items.filter(i => {
+    if (state.period==='all') return true;
+    if (!i.sellDate) return false;
+    const days = {'7d':7,'30d':30,'90d':90,'365d':365}[state.period];
+    return (now - new Date(i.sellDate)) / 86400000 <= days;
+  });
+}
+
+/* ─────────────────────────────────────────────────
+   EXPENSES
+───────────────────────────────────────────────── */
+function getExpensesForPeriod() {
+  const now = new Date();
+  return (state.expenses||[]).filter(e => {
+    if (state.period === 'all') return true;
+    if (!e.date) return true; // undated expenses always included
+    const days = {'7d':7,'30d':30,'90d':90,'365d':365}[state.period];
+    return (now - new Date(e.date)) / 86400000 <= days;
+  });
+}
+
+function renderExpenses() {
+  try {
+    const list  = document.getElementById('expenseList');
+    const empty = document.getElementById('emptyExpenses');
+    const exps  = state.expenses || [];
+    if (!exps.length) { list.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display = 'none';
+    const total = exps.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+    list.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">
+        <span style="font-size:13px;color:var(--text2);">${exps.length} expense${exps.length!==1?'s':''}</span>
+        <span style="font-size:16px;font-weight:600;color:var(--red);">−${total.toFixed(0)} zł total</span>
+      </div>
+      ${exps.map(e => `
+      <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;">${esc(e.name)}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px;">${[e.category, e.date].filter(Boolean).join(' · ')}</div>
+          ${e.notes?`<div style="font-size:12px;color:var(--text3);margin-top:2px;">${esc(e.notes)}</div>`:''}
+        </div>
+        <div style="font-weight:600;font-size:15px;color:var(--red);flex-shrink:0;">−${parseFloat(e.amount||0).toFixed(0)} zł</div>
+        <div style="display:flex;gap:5px;flex-shrink:0;">
+          <button class="btn btn-sm" onclick="openEditExpense('${e.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`).join('')}`;
+  } catch(err) { console.error('renderExpenses error:', err); }
+}
+
+function expenseModal(e) {
+  return `<div class="modal">
+    <div class="modal-title">${e?'Edit':'New'} expense <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Description *</label><input type="text" id="ex_name" value="${e?esc(e.name):''}" placeholder="e.g. Vinted subscription, packaging" /></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Amount (zł)</label><input type="number" id="ex_amount" value="${e?e.amount:''}" placeholder="0.00" step="0.01" min="0" /></div>
+      <div class="form-row"><label class="form-label">Date</label><input type="date" id="ex_date" value="${e?e.date:''}" /></div>
+    </div>
+    <div class="form-row"><label class="form-label">Category</label>
+      <select id="ex_category">
+        <option value="" ${!e?.category?'selected':''}>— uncategorised —</option>
+        <option value="Subscription" ${e?.category==='Subscription'?'selected':''}>Subscription</option>
+        <option value="Shipping supplies" ${e?.category==='Shipping supplies'?'selected':''}>Shipping supplies</option>
+        <option value="Packaging" ${e?.category==='Packaging'?'selected':''}>Packaging</option>
+        <option value="Platform fee" ${e?.category==='Platform fee'?'selected':''}>Platform fee</option>
+        <option value="Browser / tools" ${e?.category==='Browser / tools'?'selected':''}>Browser / tools</option>
+        <option value="Other" ${e?.category==='Other'?'selected':''}>Other</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">Notes</label><textarea id="ex_notes" rows="2" placeholder="Optional details...">${e?esc(e.notes||''):''}</textarea></div>
+    <div class="modal-actions">
+      ${e?`<button class="btn btn-danger" onclick="deleteExpense('${e.id}')"><i class="ti ti-trash"></i> Delete</button>`:''}
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExpense('${e?e.id:''}')">Save expense</button>
+    </div>
+  </div>`;
+}
+function openAddExpense()    { showModal(expenseModal(null)); }
+function openEditExpense(id) { const e=state.expenses.find(x=>x.id===id); if(e) showModal(expenseModal(e)); }
+
+function saveExpense(editId) {
+  const name = document.getElementById('ex_name').value.trim();
+  if (!name) { document.getElementById('ex_name').style.borderColor='var(--red)'; document.getElementById('ex_name').focus(); return; }
+  const exp = {
+    id:       editId||uid(), name,
+    amount:   document.getElementById('ex_amount').value,
+    date:     document.getElementById('ex_date').value,
+    category: document.getElementById('ex_category').value,
+    notes:    document.getElementById('ex_notes').value.trim(),
+  };
+  if (!state.expenses) state.expenses = [];
+  if (editId) { const idx=state.expenses.findIndex(e=>e.id===editId); if(idx>-1) state.expenses[idx]=exp; }
+  else state.expenses.push(exp);
+  save(); closeModal(); renderExpenses(); toast(editId?'Expense updated.':'Expense saved.');
+}
+
+function deleteExpense(id) {
+  state.expenses = (state.expenses||[]).filter(e=>e.id!==id);
+  save(); closeModal(); renderExpenses(); toast('Expense deleted.');
+}
+
+function renderProfit() {
+  try {
+    const items   = getPeriodItems();
+    const sold    = items.filter(i => i.status==='sold'||i.status==='completed');
+    const revenue   = sold.reduce((a,i)=>a+(parseFloat(i.sellPrice)||0),0);
+    const cost      = sold.reduce((a,i)=>a+(parseFloat(i.buyPrice)||0),0);
+    const otherExp  = getExpensesForPeriod().reduce((a,e)=>a+(parseFloat(e.amount)||0),0);
+    const profit    = revenue - cost - otherExp;
+    const margin    = revenue ? ((profit/revenue)*100).toFixed(1) : 0;
+    const avgP      = sold.length ? (profit/sold.length).toFixed(0) : 0;
+
+    const months={};
+    sold.forEach(i=>{
+      if(!i.sellDate) return;
+      const m=i.sellDate.slice(0,7);
+      if(!months[m]) months[m]={rev:0,cost:0};
+      months[m].rev  += parseFloat(i.sellPrice)||0;
+      months[m].cost += parseFloat(i.buyPrice)||0;
+    });
+    // add other expenses to their respective months
+    getExpensesForPeriod().forEach(e=>{
+      if(!e.date) return;
+      const m=e.date.slice(0,7);
+      if(!months[m]) months[m]={rev:0,cost:0};
+      months[m].cost += parseFloat(e.amount)||0;
+    });
+
+    const byAcc={};
+    sold.forEach(i=>{
+      const k=i.accountId||'__none__';
+      if(!byAcc[k]) byAcc[k]={rev:0,cost:0,count:0};
+      byAcc[k].rev  += parseFloat(i.sellPrice)||0;
+      byAcc[k].cost += parseFloat(i.buyPrice)||0;
+      byAcc[k].count++;
+    });
+
+    const mk=Object.keys(months).sort();
+    const maxAbs=Math.max(...mk.map(k=>Math.abs(months[k].rev-months[k].cost)),1);
+    const accKeys=Object.keys(byAcc);
+    const maxAccP=Math.max(...accKeys.map(k=>Math.abs(byAcc[k].rev-byAcc[k].cost)),1);
+
+    document.getElementById('profitContent').innerHTML=`
+      <div class="grid-metrics">
+        <div class="metric"><div class="metric-label">Revenue</div><div class="metric-value">${revenue.toFixed(0)} zł</div></div>
+        <div class="metric"><div class="metric-label">Buy costs</div><div class="metric-value">${cost.toFixed(0)} zł</div></div>
+        <div class="metric"><div class="metric-label">Other expenses</div><div class="metric-value" style="${otherExp>0?'color:var(--red);':''}">${otherExp>0?'−':''}${otherExp.toFixed(0)} zł</div></div>
+        <div class="metric"><div class="metric-label">Net profit</div><div class="metric-value ${profit>=0?'green':'red'}">${profit.toFixed(0)} zł</div></div>
+        <div class="metric"><div class="metric-label">Margin</div><div class="metric-value ${profit>=0?'green':'red'}">${margin}%</div></div>
+        <div class="metric"><div class="metric-label">Items sold</div><div class="metric-value">${sold.length}</div></div>
+        <div class="metric"><div class="metric-label">Avg profit/item</div><div class="metric-value ${parseFloat(avgP)>=0?'green':'red'}">${avgP} zł</div></div>
+      </div>
+      ${mk.length?`
+      <div class="profit-section">
+        <div class="section-title">Monthly profit</div>
+        <div class="chart-bar-container">
+          ${mk.map(k=>{
+            const p=months[k].rev-months[k].cost;
+            const w=(Math.abs(p)/maxAbs*100).toFixed(1);
+            return `<div class="chart-row">
+              <span class="chart-row-label">${k.slice(5)}.${k.slice(2,4)}</span>
+              <div class="chart-bar-wrap"><div class="chart-bar ${p<0?'neg':''}" style="width:${w}%"></div></div>
+              <span class="chart-row-val" style="color:${p>=0?'var(--green)':'var(--red)'}">${p>=0?'+':''}${p.toFixed(0)} zł</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`:
+      `<div class="empty-state"><i class="ti ti-chart-bar"></i><p>No sales in this period.</p></div>`}
+      ${accKeys.length?`
+      <div class="profit-section">
+        <div class="section-title">Profit by account</div>
+        <div class="chart-bar-container">
+          ${accKeys.map(k=>{
+            const d=byAcc[k]; const p=d.rev-d.cost;
+            const w=(Math.abs(p)/maxAccP*100).toFixed(1);
+            const label=k==='__none__'?'No account':(getAccountName(k)||k);
+            return `<div class="chart-row">
+              <span class="chart-row-label">${esc(label)}</span>
+              <div class="chart-bar-wrap"><div class="chart-bar ${p<0?'neg':''}" style="width:${w}%"></div></div>
+              <span class="chart-row-val" style="color:${p>=0?'var(--green)':'var(--red)'}">${p>=0?'+':''}${p.toFixed(0)} zł</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`:''}
+    `;
+  } catch(e) { console.error('renderProfit error:', e); }
+}
+
+/* ─────────────────────────────────────────────────
+   STATS
+───────────────────────────────────────────────── */
+function renderStats() {
+  try {
+    const items=state.items;
+    const byStatus={}, byClub={};
+    items.forEach(i=>{
+      byStatus[i.status]=(byStatus[i.status]||0)+1;
+      if(i.club) byClub[i.club]=(byClub[i.club]||0)+1;
+    });
+    const withBuy  = items.filter(i=>i.buyPrice);
+    const sold     = items.filter(i=>i.status==='sold'||i.status==='completed');
+    const withSell = sold.filter(i=>i.sellPrice);
+    const avgBuy   = withBuy.length  ? (withBuy.reduce((a,i)=>a+(parseFloat(i.buyPrice)||0),0)/withBuy.length).toFixed(0)  : '—';
+    const avgSell  = withSell.length ? (withSell.reduce((a,i)=>a+(parseFloat(i.sellPrice)||0),0)/withSell.length).toFixed(0) : '—';
+    const maxSt    = Math.max(...Object.values(byStatus),1);
+    const maxCl    = Math.max(...Object.values(byClub),1);
+    const clubEntries=Object.entries(byClub).sort((a,b)=>b[1]-a[1]);
+
+    document.getElementById('statsContent').innerHTML=`
+      <div class="grid-metrics" style="margin-bottom:1.5rem;">
+        <div class="metric"><div class="metric-label">Total items</div><div class="metric-value">${items.length}</div></div>
+        <div class="metric"><div class="metric-label">Listed</div><div class="metric-value">${byStatus.listed||0}</div></div>
+        <div class="metric"><div class="metric-label">Unlisted</div><div class="metric-value">${byStatus.unlisted||0}</div></div>
+        <div class="metric"><div class="metric-label">Avg buy price</div><div class="metric-value">${avgBuy!=='—'?avgBuy+' zł':'—'}</div></div>
+        <div class="metric"><div class="metric-label">Avg sell price</div><div class="metric-value">${avgSell!=='—'?avgSell+' zł':'—'}</div></div>
+      </div>
+      <div class="profit-section">
+        <div class="section-title">Status breakdown</div>
+        <div class="chart-bar-container">
+          ${Object.entries(byStatus).map(([s,c])=>`
+            <div class="chart-row">
+              <span class="chart-row-label">${STATUS_LABEL[s]||s}</span>
+              <div class="chart-bar-wrap"><div class="chart-bar blue" style="width:${(c/maxSt*100).toFixed(0)}%;"></div></div>
+              <span class="chart-row-val">${c}</span>
+            </div>`).join('')||'<p style="color:var(--text2);font-size:13px;">No data</p>'}
+        </div>
+      </div>
+      ${clubEntries.length?`
+      <div class="profit-section">
+        <div class="section-title">Items by club</div>
+        <div class="chart-bar-container">
+          ${clubEntries.map(([club,c])=>`
+            <div class="chart-row">
+              <span class="chart-row-label">${esc(club)}</span>
+              <div class="chart-bar-wrap"><div class="chart-bar blue" style="width:${(c/maxCl*100).toFixed(0)}%;"></div></div>
+              <span class="chart-row-val">${c}</span>
+            </div>`).join('')}
+        </div>
+      </div>`:''}
+      <div class="profit-section">
+        <div class="section-title">Recent sales</div>
+        ${sold.slice(-6).reverse().map(i=>`
+          <div class="detail-row">
+            <span>${esc(i.name)}${i.club?` <span class="club-pill">${esc(i.club)}</span>`:''}</span>
+            <span style="color:var(--green);font-weight:600;">${i.sellPrice?i.sellPrice+' zł':'—'}</span>
+          </div>`).join('')||'<p style="color:var(--text2);font-size:13px;">No sales yet</p>'}
+      </div>
+    `;
+  } catch(e) { console.error('renderStats error:', e); }
+}
+
+/* ─────────────────────────────────────────────────
+   MODALS
+───────────────────────────────────────────────── */
+function showModal(html) {
+  document.getElementById('modalContainer').innerHTML =
+    `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">${html}</div>`;
+}
+function closeModal() { document.getElementById('modalContainer').innerHTML=''; }
+
+function accountOptions(selectedId) {
+  if (!state.accounts.length) return '<option value="">— no accounts (add in Accounts tab) —</option>';
+  return '<option value="">None / unassigned</option>' +
+    state.accounts.map(a=>`<option value="${esc(a.id)}"${selectedId===a.id?' selected':''}>${esc(a.name)}${a.platform?' ('+esc(a.platform)+')':''}</option>`).join('');
+}
+
+function openAddItem() {
+  showModal(`<div class="modal">
+    <div class="modal-title">New item <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Name *</label><input type="text" id="f_name" placeholder="e.g. Nike Dri-FIT Shirt L" /></div>
+    <div class="form-row"><label class="form-label">Club</label><input type="text" id="f_club" placeholder="e.g. Real Madrid, Manchester United..." /></div>
+    <div class="form-row"><label class="form-label">Description / size / brand</label><input type="text" id="f_desc" placeholder="e.g. White, size XL" /></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Buy price (zł)</label><input type="number" id="f_buy" placeholder="0.00" step="0.01" min="0" /></div>
+      <div class="form-row"><label class="form-label">Sell price (zł)</label><input type="number" id="f_sell" placeholder="0.00" step="0.01" min="0" /></div>
+    </div>
+    <div class="form-row"><label class="form-label">Status</label>
+      <select id="f_status">
+        <option value="listed">Listed</option>
+        <option value="unlisted">Unlisted</option>
+        <option value="transit">In Transit</option>
+        <option value="sold">Sold</option>
+        <option value="completed">Completed</option>
+        <option value="problem">Problem</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">Listing account</label>
+      <select id="f_account">${accountOptions('')}</select>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Buyer</label><input type="text" id="f_buyer" placeholder="Username" /></div>
+      <div class="form-row"><label class="form-label">Sale date</label><input type="date" id="f_date" /></div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Photo — paste URL</label>
+      <input type="url" id="f_photo_url" placeholder="https://..." oninput="previewURL()" />
+      <label class="form-label" style="margin-top:8px;">or upload from disk</label>
+      <input type="file" id="f_photo_file" accept="image/*" onchange="previewFile()" />
+      <img id="f_photo_preview" class="photo-preview" style="display:none;" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem()">Save item</button>
+    </div>
+  </div>`);
+}
+
+function previewURL() {
+  const url=document.getElementById('f_photo_url').value.trim();
+  const p=document.getElementById('f_photo_preview');
+  if(url){p.src=url;p.style.display='block';}else{p.style.display='none';}
+}
+function previewFile() {
+  const f=document.getElementById('f_photo_file').files[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{const p=document.getElementById('f_photo_preview');p.src=e.target.result;p.style.display='block';};
+  r.readAsDataURL(f);
+}
+function getPhotoFromForm() {
+  const p=document.getElementById('f_photo_preview');
+  if(p&&p.style.display!=='none'&&p.src) return p.src;
+  return document.getElementById('f_photo_url')?.value.trim()||'';
+}
+
+function saveItem(editId) {
+  const name=document.getElementById('f_name').value.trim();
+  if(!name){document.getElementById('f_name').style.borderColor='var(--red)';document.getElementById('f_name').focus();return;}
+  const existingItem = editId ? state.items.find(i=>i.id===editId) : null;
+  const item={
+    id: editId||uid(), name,
+    club:        document.getElementById('f_club').value.trim(),
+    description: document.getElementById('f_desc').value.trim(),
+    buyPrice:    document.getElementById('f_buy').value,
+    sellPrice:   document.getElementById('f_sell').value,
+    status:      document.getElementById('f_status').value,
+    accountId:   document.getElementById('f_account').value,
+    buyer:       document.getElementById('f_buyer').value.trim(),
+    sellDate:    document.getElementById('f_date').value,
+    photo:       getPhotoFromForm(),
+    archived:    existingItem?.archived || false,
+  };
+  if(editId){const idx=state.items.findIndex(i=>i.id===editId);if(idx>-1)state.items[idx]=item;}
+  else state.items.push(item);
+  save(); closeModal(); renderInventory(); toast(editId?'Item updated.':'Item saved.');
+}
+
+function openDetail(id) {
+  const item=state.items.find(i=>i.id===id);
+  if(!item) return;
+  const profit=(item.sellPrice&&item.buyPrice)?(parseFloat(item.sellPrice)-parseFloat(item.buyPrice)):null;
+  const accName=getAccountName(item.accountId);
+  showModal(`<div class="modal">
+    <div class="modal-title">${esc(item.name)} <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    ${item.photo?`<img class="detail-photo" src="${esc(item.photo)}" />`:''}
+    <div class="detail-row"><span class="detail-key">Status</span>${statusBadge(item.status)}</div>
+    ${item.club?`<div class="detail-row"><span class="detail-key">Club</span><span class="club-pill"><i class="ti ti-shield" style="font-size:11px;"></i> ${esc(item.club)}</span></div>`:''}
+    <div class="detail-row"><span class="detail-key">Description</span><span>${esc(item.description||'—')}</span></div>
+    <div class="detail-row"><span class="detail-key">Buy price</span><span>${item.buyPrice?item.buyPrice+' zł':'—'}</span></div>
+    <div class="detail-row"><span class="detail-key">Sell price</span><span>${item.sellPrice?item.sellPrice+' zł':'—'}</span></div>
+    ${profit!==null?`<div class="detail-row"><span class="detail-key">Profit</span><span style="color:${profit>=0?'var(--green)':'var(--red)'};font-weight:600;">${profit>=0?'+':''}${profit.toFixed(2)} zł</span></div>`:''}
+    <div class="detail-row"><span class="detail-key">Listing account</span><span>${accName?esc(accName):'—'}</span></div>
+    <div class="detail-row"><span class="detail-key">Buyer</span><span>${esc(item.buyer||'—')}</span></div>
+    <div class="detail-row"><span class="detail-key">Sale date</span><span>${item.sellDate||'—'}</span></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deleteItem('${item.id}')"><i class="ti ti-trash"></i> Delete</button>
+      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary" onclick="openEditItem('${item.id}')"><i class="ti ti-edit"></i> Edit</button>
+    </div>
+  </div>`);
+}
+
+function openEditItem(id) {
+  const item=state.items.find(i=>i.id===id);
+  if(!item) return;
+  showModal(`<div class="modal">
+    <div class="modal-title">Edit item <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Name *</label><input type="text" id="f_name" value="${esc(item.name)}" /></div>
+    <div class="form-row"><label class="form-label">Club</label><input type="text" id="f_club" value="${esc(item.club||'')}" placeholder="e.g. Real Madrid..." /></div>
+    <div class="form-row"><label class="form-label">Description</label><input type="text" id="f_desc" value="${esc(item.description||'')}" /></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Buy price (zł)</label><input type="number" id="f_buy" value="${item.buyPrice||''}" step="0.01" min="0" /></div>
+      <div class="form-row"><label class="form-label">Sell price (zł)</label><input type="number" id="f_sell" value="${item.sellPrice||''}" step="0.01" min="0" /></div>
+    </div>
+    <div class="form-row"><label class="form-label">Status</label>
+      <select id="f_status">
+        <option value="listed"    ${item.status==='listed'   ?'selected':''}>Listed</option>
+        <option value="unlisted"  ${item.status==='unlisted' ?'selected':''}>Unlisted</option>
+        <option value="transit"   ${item.status==='transit'  ?'selected':''}>In Transit</option>
+        <option value="sold"      ${item.status==='sold'     ?'selected':''}>Sold</option>
+        <option value="completed" ${item.status==='completed'?'selected':''}>Completed</option>
+        <option value="problem"   ${item.status==='problem'  ?'selected':''}>Problem</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">Listing account</label>
+      <select id="f_account">${accountOptions(item.accountId||'')}</select>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Buyer</label><input type="text" id="f_buyer" value="${esc(item.buyer||'')}" /></div>
+      <div class="form-row"><label class="form-label">Sale date</label><input type="date" id="f_date" value="${item.sellDate||''}" /></div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Photo — URL</label>
+      <input type="url" id="f_photo_url" value="${esc(item.photo||'')}" oninput="previewURL()" />
+      <label class="form-label" style="margin-top:8px;">or upload from disk</label>
+      <input type="file" id="f_photo_file" accept="image/*" onchange="previewFile()" />
+      <img id="f_photo_preview" class="photo-preview" style="display:${item.photo?'block':'none'};" src="${esc(item.photo||'')}" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem('${item.id}')">Save changes</button>
+    </div>
+  </div>`);
+}
+
+function deleteItem(id) {
+  state.items=state.items.filter(i=>i.id!==id);
+  save(); closeModal(); renderInventory(); toast('Item deleted.');
+}
+
+function openAddOrder() {
+  showModal(`<div class="modal">
+    <div class="modal-title">New order <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Name / description *</label><input type="text" id="o_name" placeholder="e.g. Vinted shirt batch" /></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Source</label><input type="text" id="o_source" placeholder="Vinted, Allegro, OLX..." /></div>
+      <div class="form-row"><label class="form-label">Order date</label><input type="date" id="o_date" /></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">No. of items</label><input type="number" id="o_items" min="1" placeholder="0" /></div>
+      <div class="form-row"><label class="form-label">Total cost (zł)</label><input type="number" id="o_cost" step="0.01" placeholder="0.00" /></div>
+    </div>
+    <div class="form-row"><label class="form-label">Tracking number</label><input type="text" id="o_track" placeholder="e.g. PL123456789PL" /></div>
+    <div class="form-row"><label class="form-label">Status</label>
+      <select id="o_status">
+        <option value="pending">Pending</option>
+        <option value="received">Received</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">Notes</label><textarea id="o_notes" rows="2" placeholder="Additional info..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrder()">Save order</button>
+    </div>
+  </div>`);
+}
+
+function openEditOrder(id) {
+  const o=state.orders.find(x=>x.id===id);
+  if(!o) return;
+  showModal(`<div class="modal">
+    <div class="modal-title">Edit order <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Name *</label><input type="text" id="o_name" value="${esc(o.name)}" /></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Source</label><input type="text" id="o_source" value="${esc(o.source||'')}" /></div>
+      <div class="form-row"><label class="form-label">Date</label><input type="date" id="o_date" value="${o.date||''}" /></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Items</label><input type="number" id="o_items" value="${o.items||''}" /></div>
+      <div class="form-row"><label class="form-label">Cost (zł)</label><input type="number" id="o_cost" step="0.01" value="${o.cost||''}" /></div>
+    </div>
+    <div class="form-row"><label class="form-label">Tracking no.</label><input type="text" id="o_track" value="${esc(o.trackingNo||'')}" /></div>
+    <div class="form-row"><label class="form-label">Status</label>
+      <select id="o_status">
+        <option value="pending"   ${o.status==='pending'  ?'selected':''}>Pending</option>
+        <option value="received"  ${o.status==='received' ?'selected':''}>Received</option>
+        <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelled</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">Notes</label><textarea id="o_notes" rows="2">${esc(o.notes||'')}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deleteOrder('${id}')"><i class="ti ti-trash"></i> Delete</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrder('${id}')">Save changes</button>
+    </div>
+  </div>`);
+}
+
+function saveOrder(editId) {
+  const name=document.getElementById('o_name').value.trim();
+  if(!name){document.getElementById('o_name').style.borderColor='var(--red)';document.getElementById('o_name').focus();return;}
+  const order={
+    id:editId||uid(),name,
+    source:     document.getElementById('o_source').value.trim(),
+    date:       document.getElementById('o_date').value,
+    items:      document.getElementById('o_items').value,
+    cost:       document.getElementById('o_cost').value,
+    trackingNo: document.getElementById('o_track').value.trim(),
+    status:     document.getElementById('o_status').value,
+    notes:      document.getElementById('o_notes').value.trim()
+  };
+  if(editId){const idx=state.orders.findIndex(o=>o.id===editId);if(idx>-1)state.orders[idx]=order;}
+  else state.orders.push(order);
+  save(); closeModal(); renderOrders(); toast(editId?'Order updated.':'Order saved.');
+}
+
+function deleteOrder(id) {
+  state.orders=state.orders.filter(o=>o.id!==id);
+  save(); closeModal(); renderOrders(); toast('Order deleted.');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─────────────────────────────────────────────────
+   EXPORT / IMPORT
+───────────────────────────────────────────────── */
+function exportData() {
+  const payload={ _version:3, _exported:new Date().toISOString(), items:state.items, orders:state.orders, accounts:state.accounts };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`sporttrack_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('Exported successfully.');
+}
+
+function importData(event) {
+  const file=event.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try {
+      const data=JSON.parse(e.target.result);
+      if(!data.items&&!data.orders&&!data.accounts){ toast('Invalid file — no SportTrack data.'); return; }
+      const ic=(data.items||[]).length, oc=(data.orders||[]).length, ac=(data.accounts||[]).length;
+      state.items    =(data.items||[]).map(i=>{if(i.status==='available')i.status='listed';return i;});
+      state.orders   =data.orders||[];
+      state.accounts =data.accounts||[];
+      save(); updateFilterDropdowns(); renderInventory();
+      const ap=document.querySelector('.page.active')?.id?.replace('page-','');
+      if(ap==='accounts') renderAccounts();
+      if(ap==='orders')   renderOrders();
+      if(ap==='profit')   renderProfit();
+      if(ap==='stats')    renderStats();
+      toast(`Imported: ${ic} items, ${oc} orders, ${ac} accounts.`);
+    } catch(err){ toast('Could not parse file.'); }
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+/* ─────────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────────── */
+loadData().then(() => {
+  loadArchiveSettings();
+  updateFilterDropdowns();
+  renderInventory();
+});
+</script>
+</body>
+</html>
