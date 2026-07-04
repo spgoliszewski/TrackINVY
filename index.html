@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SportTrack</title>
+<title>TrackINVY</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -250,19 +251,194 @@
   }
   .phone-real { color: #1D9E75; font-weight: 600; }
   .phone-temp { color: #E24B4A; font-weight: 600; }
+
+  /* ── Auth screen ─────────────────────────────── */
+  #authScreen {
+    position: fixed; inset: 0; z-index: 9000;
+    display: flex; align-items: stretch;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .auth-left {
+    flex: 1; background: #0f172a;
+    display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+    padding: 3rem 4rem; gap: 0;
+  }
+  .auth-left-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; }
+  .auth-left-logo-icon { width: 44px; height: 44px; border-radius: 10px; background: #3b82f6; display: flex; align-items: center; justify-content: center; }
+  .auth-left-logo-icon i { font-size: 24px; color: #fff; }
+  .auth-left-logo-name { font-size: 20px; font-weight: 700; color: #f8fafc; letter-spacing: -.3px; }
+  .auth-left h1 { font-size: 36px; font-weight: 800; color: #f8fafc; line-height: 1.2; letter-spacing: -.5px; margin-bottom: 1rem; }
+  .auth-left p  { font-size: 15px; color: #94a3b8; line-height: 1.6; max-width: 380px; margin-bottom: 2.5rem; }
+  .auth-features { display: flex; flex-direction: column; gap: 12px; }
+  .auth-feature { display: flex; align-items: center; gap: 12px; color: #cbd5e1; font-size: 14px; }
+  .auth-feature-dot { width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; flex-shrink: 0; }
+  .auth-right {
+    width: 440px; flex-shrink: 0; background: var(--bg);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 3rem 2.5rem; overflow-y: auto;
+  }
+  .auth-right-title { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .auth-right-sub   { font-size: 14px; color: var(--text2); margin-bottom: 2rem; }
+  /* Tab switcher */
+  .auth-switcher { display: flex; background: var(--bg2); border-radius: var(--radius); padding: 3px; gap: 3px; margin-bottom: 1.75rem; }
+  .auth-switcher-btn { flex: 1; text-align: center; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px; border: none; background: transparent; color: var(--text2); transition: all .15s; }
+  .auth-switcher-btn.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  /* Input fields */
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; letter-spacing: .02em; text-transform: uppercase; }
+  .auth-field input { width: 100%; padding: 11px 14px; border: 1px solid var(--border2); border-radius: var(--radius); font-size: 14px; background: var(--bg); color: var(--text); font-family: inherit; transition: border-color .15s, box-shadow .15s; }
+  .auth-field input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+  .auth-submit { width: 100%; padding: 12px; border: none; border-radius: var(--radius); background: #3b82f6; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background .15s, transform .1s; letter-spacing: .01em; }
+  .auth-submit:hover { background: #2563eb; }
+  .auth-submit:active { transform: scale(.98); }
+  .auth-divider { text-align: center; color: var(--text3); font-size: 12px; margin: 16px 0; position: relative; }
+  .auth-divider::before, .auth-divider::after { content:''; position: absolute; top: 50%; width: 42%; height: 0.5px; background: var(--border2); }
+  .auth-divider::before { left: 0; } .auth-divider::after { right: 0; }
+  .auth-msg { border-radius: var(--radius); padding: 11px 14px; font-size: 13px; margin-bottom: 14px; display: none; }
+  .auth-msg.visible { display: block; }
+  .auth-msg.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+  .auth-msg.info  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  .auth-forgot { text-align: right; margin-top: -8px; margin-bottom: 14px; }
+  .auth-forgot a { font-size: 12px; color: #3b82f6; text-decoration: none; cursor: pointer; }
+  .auth-forgot a:hover { text-decoration: underline; }
+  /* User pill in header */
+  .user-pill { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2); }
+  .user-avatar { width: 30px; height: 30px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  /* Sync */
+  #syncStatus { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+  #syncStatus.syncing { color: var(--orange); }
+  #syncStatus.ok  { color: var(--green); }
+  #syncStatus.err { color: var(--red); }
+  #syncStatus.local { color: var(--text3); }
+  /* Mobile: stack vertically */
+  @media (max-width: 700px) {
+    #authScreen { flex-direction: column; }
+    .auth-left { display: none; }
+    .auth-right { width: 100%; padding: 2rem 1.5rem; justify-content: center; min-height: 100dvh; }
+  }
+
+  /* ── Multi-select ───────────────────────────── */
+  .select-mode-active .item-card { cursor: default; }
+  .item-card .sel-checkbox { position:absolute; top:10px; left:10px; width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.8); background:rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .15s; z-index:15; cursor:pointer; }
+  .select-mode-active .item-card .sel-checkbox { opacity:1; pointer-events:auto; }
+  .item-card.selected .sel-checkbox { background:#3b82f6; border-color:#3b82f6; }
+  .item-card.selected .sel-checkbox::after { content:''; width:6px; height:10px; border:2px solid #fff; border-top:none; border-left:none; transform:rotate(45deg) translateY(-1px); display:block; }
+  .item-card.selected { outline:2.5px solid #3b82f6; outline-offset:1px; }
+  /* floating action bar */
+  #selectionBar { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); border-radius: 12px; padding:10px 16px; display:none; align-items:center; gap:10px; z-index:500; box-shadow:0 8px 32px rgba(0,0,0,0.25); white-space:nowrap; }
+  #selectionBar.visible { display:flex; }
+  #selectionBar .sel-count { font-size:13px; font-weight:700; padding-right:8px; border-right:1px solid rgba(255,255,255,0.25); }
+  #selectionBar .sel-btn { padding:6px 12px; border-radius:8px; border:none; background:rgba(255,255,255,0.12); color:var(--bg); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; transition:background .12s; }
+  #selectionBar .sel-btn:hover { background:rgba(255,255,255,0.22); }
+  #selectionBar .sel-btn.red { background:rgba(226,75,74,0.85); }
+  #selectionBar .sel-btn.red:hover { background:rgba(226,75,74,1); }
+  #selectionBar .sel-close { padding:6px 10px; border-radius:8px; border:none; background:transparent; color:rgba(255,255,255,0.5); cursor:pointer; font-size:16px; line-height:1; }
+  /* account select */
+  .account-card.selected { outline:2.5px solid #3b82f6; outline-offset:2px; }
+  .account-card .acc-sel-check { width:20px; height:20px; border-radius:5px; border:1.5px solid var(--border2); background:var(--bg); display:none; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all .12s; }
+  .acc-select-mode .account-card .acc-sel-check { display:flex; }
+  .account-card.selected .acc-sel-check { background:#3b82f6; border-color:#3b82f6; }
+  .account-card.selected .acc-sel-check::after { content:''; width:5px; height:9px; border:2px solid #fff; border-top:none; border-left:none; transform:rotate(45deg) translateY(-1px); display:block; }
+
+  /* ── IBAN Manager ───────────────────────────── */
+  .iban-card { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:14px 16px; margin-bottom:10px; display:flex; align-items:center; gap:14px; }
+  .iban-icon { width:40px; height:40px; border-radius:var(--radius); background:var(--bg2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .iban-info { flex:1; min-width:0; }
+  .iban-label { font-weight:600; font-size:14px; }
+  .iban-num { font-family:monospace; font-size:12px; color:var(--text2); margin-top:3px; letter-spacing:.04em; }
+  .iban-owner { font-size:12px; color:var(--text3); margin-top:2px; }
+  .iban-actions { display:flex; gap:6px; flex-shrink:0; }
+
+  /* ── Deals ──────────────────────────────────── */
+  .deal-card { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:16px; margin-bottom:12px; }
+  .deal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+  .deal-name { font-weight:700; font-size:16px; }
+  .deal-desc { font-size:12px; color:var(--text2); margin-top:3px; }
+  .deal-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:8px; margin-bottom:12px; }
+  .deal-metric { background:var(--bg2); border-radius:var(--radius); padding:10px 12px; }
+  .deal-metric-label { font-size:11px; color:var(--text2); margin-bottom:4px; }
+  .deal-metric-val { font-size:18px; font-weight:700; }
+  .deal-items-preview { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .deal-item-chip { background:var(--bg2); border:0.5px solid var(--border); border-radius:6px; padding:4px 9px; font-size:12px; display:flex; align-items:center; gap:5px; }
+  .deal-item-chip .remove-chip { cursor:pointer; color:var(--text3); font-size:14px; line-height:1; }
+  .deal-item-chip .remove-chip:hover { color:var(--red); }
+  .deal-actions { display:flex; gap:6px; flex-wrap:wrap; }
 </style>
 </head>
 <body>
-<div class="app">
+<!-- AUTH SCREEN -->
+<div id="authScreen" style="display:none;">
+  <!-- Left panel -->
+  <div class="auth-left">
+    <div class="auth-left-logo">
+      <div class="auth-left-logo-icon"><i class="ti ti-shirt"></i></div>
+      <span class="auth-left-logo-name">TrackINVY</span>
+    </div>
+    <h1>Your inventory,<br>always in sync.</h1>
+    <p>Manage sportswear reselling across all your devices — items, accounts, profits, and orders in one place.</p>
+    <div class="auth-features">
+      <div class="auth-feature"><div class="auth-feature-dot"></div> Track 100+ items with photos &amp; status flow</div>
+      <div class="auth-feature"><div class="auth-feature-dot"></div> Multi-account seller profiles with trust scoring</div>
+      <div class="auth-feature"><div class="auth-feature-dot"></div> Real-time profit calculator &amp; expense tracking</div>
+      <div class="auth-feature"><div class="auth-feature-dot"></div> Works on mobile, tablet, and desktop</div>
+    </div>
+  </div>
+  <!-- Right panel -->
+  <div class="auth-right">
+    <div class="auth-right-title" id="authTitle">Welcome back</div>
+    <div class="auth-right-sub"  id="authSub">Sign in to your TrackINVY account</div>
+    <div class="auth-switcher">
+      <button class="auth-switcher-btn active" id="tabLogin"    onclick="switchAuthTab('login')">Sign in</button>
+      <button class="auth-switcher-btn"        id="tabRegister" onclick="switchAuthTab('register')">Create account</button>
+    </div>
+    <div class="auth-msg" id="authError"></div>
+    <!-- Login -->
+    <div id="loginForm">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()" autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password" />
+      </div>
+      <div class="auth-forgot"><a onclick="doResetPassword()">Forgot password?</a></div>
+      <button class="auth-submit" onclick="doLogin()" id="loginBtn">Sign in →</button>
+    </div>
+    <!-- Register -->
+    <div id="registerForm" style="display:none;">
+      <div class="auth-field">
+        <label>Your name</label>
+        <input type="text" id="regName" placeholder="John Doe" autocomplete="name" />
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="at least 6 characters" onkeydown="if(event.key==='Enter')doRegister()" autocomplete="new-password" />
+      </div>
+      <button class="auth-submit" onclick="doRegister()" id="registerBtn">Create account →</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none;">
   <div class="top-header">
-    <div class="logo"><i class="ti ti-shirt"></i> SportTrack</div>
-    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-      <span id="storageIndicator"><i class="ti ti-circle-filled" style="font-size:8px;"></i> <span id="storageStatus">—</span></span>
+    <div class="logo"><i class="ti ti-shirt"></i> TrackINVY</div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"><span id="syncStatus"><i class="ti ti-cloud" style="font-size:12px;"></i> <span id="syncText">—</span></span>
+      
       <button class="btn btn-sm" onclick="exportData()" title="Export data to JSON file"><i class="ti ti-download"></i> Export</button>
       <label class="btn btn-sm" title="Import data from JSON file" style="cursor:pointer;margin:0;">
         <i class="ti ti-upload"></i> Import
         <input type="file" accept=".json" onchange="importData(event)" style="display:none;" />
       </label>
+      <div class="user-pill" id="userPill" style="display:none;">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <span id="userEmail" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <button class="btn btn-sm" onclick="doLogout()" title="Sign out"><i class="ti ti-logout"></i></button>
+      </div>
     </div>
     <nav class="nav" id="mainNav">
       <button class="nav-btn active" onclick="switchPage('inventory')"><i class="ti ti-shirt"></i> Inventory</button>
@@ -271,6 +447,8 @@
       <button class="nav-btn" onclick="switchPage('profit')"><i class="ti ti-chart-bar"></i> Profit</button>
       <button class="nav-btn" onclick="switchPage('stats')"><i class="ti ti-chart-pie"></i> Stats</button>
       <button class="nav-btn" onclick="switchPage('expenses')"><i class="ti ti-receipt"></i> Expenses</button>
+      <button class="nav-btn" onclick="switchPage('deals')"><i class="ti ti-git-merge"></i> Deals</button>
+      <button class="nav-btn" onclick="switchPage('ibans')"><i class="ti ti-building-bank"></i> IBANs</button>
     </nav>
   </div>
 
@@ -285,6 +463,7 @@
           <button class="view-mode-btn active" id="vmGrid"  onclick="setViewMode('grid')"  title="Grid view"><i class="ti ti-layout-grid"></i></button>
           <button class="view-mode-btn"        id="vmTable" onclick="setViewMode('table')" title="Table view"><i class="ti ti-table"></i></button>
         </div>
+        <button class="btn" id="selectModeBtn" onclick="toggleSelectMode()" title="Select multiple items"><i class="ti ti-checkmark"></i> Select</button>
         <button class="btn btn-primary" onclick="openAddItem()"><i class="ti ti-plus"></i> Add item</button>
       </div>
     </div>
@@ -435,6 +614,44 @@
       <p>No expenses yet. Add recurring or one-off costs.</p>
     </div>
   </div>
+
+  <!-- DEALS -->
+  <div class="page" id="page-deals">
+    <div class="page-header">
+      <span class="section-title">Deals & Bundles</span>
+      <button class="btn btn-primary" onclick="openAddDeal()"><i class="ti ti-plus"></i> New deal</button>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Group items into deals or bundles to track profit from specific batches or sales.</div>
+    <div id="dealList"></div>
+    <div id="emptyDeals" class="empty-state" style="display:none;">
+      <i class="ti ti-git-merge"></i>
+      <p>No deals yet. Create one or select items from inventory.</p>
+    </div>
+  </div>
+
+  <!-- IBAN MANAGER -->
+  <div class="page" id="page-ibans">
+    <div class="page-header">
+      <span class="section-title">IBAN Manager</span>
+      <button class="btn btn-primary" onclick="openAddIBAN()"><i class="ti ti-plus"></i> Add IBAN</button>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Save IBANs here and assign them to accounts without retyping.</div>
+    <div id="ibanList"></div>
+    <div id="emptyIbans" class="empty-state" style="display:none;">
+      <i class="ti ti-building-bank"></i>
+      <p>No IBANs saved yet.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SELECTION ACTION BAR -->
+<div id="selectionBar">
+  <span class="sel-count" id="selCount">0 selected</span>
+  <button class="sel-btn" onclick="selArchiveAll()"><i class="ti ti-archive"></i> Archive</button>
+  <button class="sel-btn" onclick="selStatusAll()"><i class="ti ti-refresh"></i> Status</button>
+  <button class="sel-btn" onclick="selAddToDeal()"><i class="ti ti-git-merge"></i> Add to deal</button>
+  <button class="sel-btn red" onclick="selDeleteAll()"><i class="ti ti-trash"></i> Delete</button>
+  <button class="sel-close" onclick="clearSelection()">✕</button>
 </div>
 
 <div id="modalContainer"></div>
@@ -442,25 +659,32 @@
 
 <script>
 /* ─────────────────────────────────────────────────
-   STORAGE — triple-write: localStorage (primary)
-   + IndexedDB (robust fallback)
-   + in-memory (always works)
+   SUPABASE + LOCAL FALLBACK STORAGE
 ───────────────────────────────────────────────── */
-const SK = 'sporttrack_v3';
-let state = { items: [], orders: [], accounts: [], expenses: [], filter: 'all', period: '7d' };
+const SUPA_URL = 'https://egtzvdocyoviavbszddc.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVndHp2ZG9jeW92aWF2YnN6ZGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTI1MzAsImV4cCI6MjA5ODMyODUzMH0.Br5cASfoapLG-mH_SphG7qNN49nODiWxh2iwtog9tBA';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+const SK = 'trackinvy_v3';
+let state = { items: [], orders: [], accounts: [], expenses: [], ibans: [], deals: [], filter: 'all', period: '7d' };
 let viewTab = 'active'; // 'active' | 'archive'
 let viewMode = 'grid';  // 'grid' | 'table'
 let accFilters = { type: 'all', safety: 'all', status: 'all' };
-let autoArchiveDays = 30; // loaded from localStorage separately
+let selectedItems = new Set(); // item ids currently selected
+let selectMode = false;
+let autoArchiveDays = 30;
+let currentUser = null;
+let _saveTimer = null;
 
 function saveArchiveSettings() {
   const sel = document.getElementById('autoArchiveDays');
   if (sel) autoArchiveDays = parseInt(sel.value) || 0;
-  try { localStorage.setItem('sporttrack_archive_days', String(autoArchiveDays)); } catch(e) {}
+  try { localStorage.setItem('trackinvy_archive_days_' + (currentUser?.id||'local'), String(autoArchiveDays)); } catch(e) {}
 }
 function loadArchiveSettings() {
   try {
-    const v = localStorage.getItem('sporttrack_archive_days');
+    const v = localStorage.getItem('trackinvy_archive_days_' + (currentUser?.id||'local'));
     if (v !== null) autoArchiveDays = parseInt(v) || 0;
     const sel = document.getElementById('autoArchiveDays');
     if (sel) sel.value = String(autoArchiveDays);
@@ -484,7 +708,7 @@ let _idb = null;
 function openIDB() {
   return new Promise((res, rej) => {
     if (_idb) { res(_idb); return; }
-    const req = indexedDB.open('SportTrack', 1);
+    const req = indexedDB.open('TrackINVY', 1);
     req.onupgradeneeded = e => {
       e.target.result.createObjectStore('kv');
     };
@@ -492,91 +716,64 @@ function openIDB() {
     req.onerror   = () => rej(req.error);
   });
 }
-function idbSet(val) {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const tx = db.transaction('kv', 'readwrite');
-    tx.objectStore('kv').put(val, SK);
-    tx.oncomplete = res;
-    tx.onerror    = () => rej(tx.error);
-  })).catch(() => {});
-}
-function idbGet() {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const req = db.transaction('kv', 'readonly').objectStore('kv').get(SK);
-    req.onsuccess = () => res(req.result);
-    req.onerror   = () => rej(req.error);
-  })).catch(() => null);
-}
-
-// ── Save: write to both storages ──────────────
+// ── Supabase save (debounced 800ms) ──────────
 function save() {
-  const json = JSON.stringify(state);
-  // localStorage
-  try { localStorage.setItem(SK, json); } catch(e) {}
-  // IndexedDB (async, non-blocking)
-  idbSet(json).catch(() => {});
-  updateStorageIndicator();
-}
-
-// ── Load: try localStorage first, then IDB ────
-async function loadData() {
-  let data = null;
-
-  // 1) Try localStorage
-  try {
-    const raw = localStorage.getItem(SK);
-    if (raw) data = JSON.parse(raw);
-  } catch(e) {}
-
-  // 2) If localStorage empty/failed, try IndexedDB
-  if (!data) {
+  try { localStorage.setItem(SK + '_' + (currentUser?.id||'anon'), JSON.stringify(state)); } catch(e) {}
+  if (!currentUser) { setSyncStatus('local', 'Local only'); return; }
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(async () => {
+    setSyncStatus('syncing', 'Saving…');
     try {
-      const raw = await idbGet();
-      if (raw) data = JSON.parse(raw);
-    } catch(e) {}
-  }
-
-  // 3) If still nothing, try all legacy keys
-  if (!data) {
-    for (const legacyKey of ['sporttrack_v2', 'sporttrack_v1']) {
-      try {
-        const raw = localStorage.getItem(legacyKey);
-        if (raw) { data = JSON.parse(raw); break; }
-      } catch(e) {}
+      const { error } = await sb.from('user_data').upsert(
+        { user_id: currentUser.id, data: state, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+      );
+      if (error) throw error;
+      setSyncStatus('ok', `Saved · ${state.items.length} items`);
+    } catch(e) {
+      setSyncStatus('err', 'Sync failed');
     }
-  }
-
-  if (data) {
-    // Migrate old statuses
-    if (data.items) data.items = data.items.map(i => {
-      if (i.status === 'available') i.status = 'listed';
-      return i;
-    });
-    state = Object.assign({ filter:'all', period:'7d', accounts:[] }, data);
-    // Re-save under new key to consolidate
-    save();
-  }
-  updateStorageIndicator();
+  }, 800);
 }
 
-function updateStorageIndicator() {
-  const el = document.getElementById('storageIndicator');
-  const st = document.getElementById('storageStatus');
-  if (!el || !st) return;
+// ── Load from Supabase ────────────────────────
+async function loadData() {
+  if (!currentUser) return;
+  setSyncStatus('syncing', 'Loading…');
   try {
-    const test = localStorage.getItem(SK);
-    if (test) {
-      el.className = 'ok';
-      const parsed = JSON.parse(test);
-      st.textContent = `Saved · ${(parsed.items||[]).length} items`;
+    const { data, error } = await sb.from('user_data').select('data').eq('user_id', currentUser.id).single();
+    if (error && error.code !== 'PGRST116') throw error;
+    if (data?.data) {
+      let d = data.data;
+      if (d.items) d.items = d.items.map(i => { if (i.status==='available') i.status='listed'; return i; });
+      state = Object.assign({ filter:'all', period:'7d', accounts:[], expenses:[] }, d);
     } else {
-      el.className = 'err';
-      st.textContent = 'Not saved!';
+      const localRaw = localStorage.getItem(SK + '_' + currentUser.id) || localStorage.getItem(SK);
+      if (localRaw) {
+        try {
+          let d = JSON.parse(localRaw);
+          if (d.items) d.items = d.items.map(i => { if (i.status==='available') i.status='listed'; return i; });
+          state = Object.assign({ filter:'all', period:'7d', accounts:[], expenses:[] }, d);
+          save();
+        } catch(e2) {}
+      }
     }
+    setSyncStatus('ok', `Loaded · ${state.items.length} items`);
   } catch(e) {
-    el.className = 'err';
-    st.textContent = 'Storage error';
+    setSyncStatus('err', 'Load failed – using local');
+    try {
+      const raw = localStorage.getItem(SK + '_' + currentUser.id) || localStorage.getItem(SK);
+      if (raw) state = Object.assign({ filter:'all', period:'7d', accounts:[], expenses:[] }, JSON.parse(raw));
+    } catch(e2) {}
   }
+}
+
+function setSyncStatus(type, msg) {
+  const el = document.getElementById('syncStatus');
+  const tx = document.getElementById('syncText');
+  if (!el || !tx) return;
+  el.className = type;
+  tx.textContent = msg;
 }
 
 // ── Toast notification ─────────────────────────
@@ -646,7 +843,7 @@ function switchPage(p) {
     document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
     document.getElementById('page-' + p).classList.add('active');
-    const idx = ['inventory','orders','accounts','profit','stats','expenses'].indexOf(p);
+    const idx = ['inventory','orders','accounts','profit','stats','expenses','deals','ibans'].indexOf(p);
     if (idx >= 0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
     if (p === 'profit')    renderProfit();
     if (p === 'stats')     renderStats();
@@ -654,6 +851,8 @@ function switchPage(p) {
     if (p === 'orders')    renderOrders();
     if (p === 'accounts')  renderAccounts();
     if (p === 'expenses')  renderExpenses();
+    if (p === 'deals')     renderDeals();
+    if (p === 'ibans')     renderIBANs();
   } catch(e) { console.error('switchPage error:', e); }
 }
 
@@ -931,7 +1130,9 @@ function renderInventory() {
           <button class="quick-problem-btn" onclick="quickReportProblem('${item.id}',event)"><i class="ti ti-alert-triangle"></i> Report problem</button>
           <button class="quick-problem-btn" style="background:rgba(0,0,0,0.7);margin-top:2px;" onclick="quickDelete('${item.id}',event)"><i class="ti ti-trash"></i> Delete item</button>
         </div>`;
-        return `<div class="item-card" onclick="openDetail('${item.id}')">
+        const isSelected = selectedItems.has(item.id);
+        return `<div class="item-card ${isSelected?'selected':''}" data-id="${item.id}" onclick="${selectMode?`toggleItemSelect('${item.id}',event)`:`openDetail('${item.id}')`}">
+          <div class="sel-checkbox" onclick="toggleItemSelect('${item.id}',event)"></div>
           ${photoEl}
           <div class="item-name">${esc(item.name)}</div>
           ${item.club ? `<div class="item-club"><span class="club-pill"><i class="ti ti-shield" style="font-size:10px;"></i> ${esc(item.club)}</span></div>` : ''}
@@ -1408,7 +1609,16 @@ function accountModalFields(a) {
       </div>
       <div class="form-row">
         <label class="form-label">IBAN</label>
-        <input type="text" id="a_iban" value="${iban}" placeholder="e.g. PL61 1090 1014 0000 0712 1981 2874" />
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="a_iban" value="${iban}" placeholder="Type manually or pick below" style="flex:1;" />
+        </div>
+        ${(state.ibans&&state.ibans.length)?`<div style="margin-top:6px;">
+          <label class="form-label" style="margin-bottom:4px;">Or pick saved IBAN</label>
+          <select onchange="if(this.value){document.getElementById('a_iban').value=this.value;this.value=''}" style="font-size:12px;">
+            <option value="">— select saved IBAN —</option>
+            ${(state.ibans||[]).map(ib=>`<option value="${esc(ib.number)}">${esc(ib.label)} · ${esc(ib.number)}</option>`).join('')}
+          </select>
+        </div>`:''}
       </div>
     </div>
     <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;">Safety Status</div>
@@ -2138,7 +2348,7 @@ function exportData() {
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url; a.download=`sporttrack_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.href=url; a.download=`trackinvy_backup_${new Date().toISOString().slice(0,10)}.json`;
   a.click(); URL.revokeObjectURL(url);
   toast('Exported successfully.');
 }
@@ -2149,7 +2359,7 @@ function importData(event) {
   reader.onload=e=>{
     try {
       const data=JSON.parse(e.target.result);
-      if(!data.items&&!data.orders&&!data.accounts){ toast('Invalid file — no SportTrack data.'); return; }
+      if(!data.items&&!data.orders&&!data.accounts){ toast('Invalid file — no TrackINVY data.'); return; }
       const ic=(data.items||[]).length, oc=(data.orders||[]).length, ac=(data.accounts||[]).length;
       state.items    =(data.items||[]).map(i=>{if(i.status==='available')i.status='listed';return i;});
       state.orders   =data.orders||[];
@@ -2167,13 +2377,423 @@ function importData(event) {
   event.target.value='';
 }
 
+
+/* ═══════════════════════════════════════════════
+   MULTI-SELECT
+═══════════════════════════════════════════════ */
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedItems.clear();
+  const btn = document.getElementById('selectModeBtn');
+  const grid = document.getElementById('itemGrid');
+  if (btn) { btn.classList.toggle('btn-primary', selectMode); btn.innerHTML = selectMode ? '<i class="ti ti-x"></i> Cancel' : '<i class="ti ti-checkmark"></i> Select'; }
+  if (grid) grid.classList.toggle('select-mode-active', selectMode);
+  updateSelectionBar();
+  renderInventory();
+}
+
+function clearSelection() {
+  selectedItems.clear();
+  selectMode = false;
+  const btn = document.getElementById('selectModeBtn');
+  if (btn) { btn.classList.remove('btn-primary'); btn.innerHTML = '<i class="ti ti-checkmark"></i> Select'; }
+  const grid = document.getElementById('itemGrid');
+  if (grid) grid.classList.remove('select-mode-active');
+  updateSelectionBar();
+  renderInventory();
+}
+
+function toggleItemSelect(id, e) {
+  e.stopPropagation();
+  if (selectedItems.has(id)) selectedItems.delete(id);
+  else selectedItems.add(id);
+  updateSelectionBar();
+  // toggle class without full re-render
+  const card = document.querySelector(`.item-card[data-id="${id}"]`);
+  if (card) card.classList.toggle('selected', selectedItems.has(id));
+}
+
+function updateSelectionBar() {
+  const bar = document.getElementById('selectionBar');
+  const cnt = document.getElementById('selCount');
+  if (!bar) return;
+  const n = selectedItems.size;
+  if (n > 0) { bar.classList.add('visible'); if(cnt) cnt.textContent = `${n} selected`; }
+  else         bar.classList.remove('visible');
+}
+
+function selDeleteAll() {
+  const ids = [...selectedItems];
+  const items = state.items.filter(i => ids.includes(i.id));
+  state.items = state.items.filter(i => !ids.includes(i.id));
+  save(); clearSelection();
+  toastUndo(`${ids.length} item${ids.length!==1?'s':''} deleted.`, () => {
+    ids.forEach(id => { const it=items.find(x=>x.id===id); if(it) state.items.push(it); });
+    save(); renderInventory(); toast('Restored.');
+  });
+}
+
+function selArchiveAll() {
+  [...selectedItems].forEach(id => { const it=state.items.find(i=>i.id===id); if(it) it.archived=true; });
+  save(); clearSelection(); toast(`Archived ${selectedItems.size} items.`);
+}
+
+function selStatusAll() {
+  const ids = [...selectedItems];
+  showModal(`<div class="modal">
+    <div class="modal-title">Change status <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Apply to ${ids.length} selected item${ids.length!==1?'s':''}:</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${['listed','unlisted','transit','sold','completed','problem'].map(s=>`<button class="btn" style="justify-content:flex-start;" onclick="applyBulkStatus('${s}')">→ ${STATUS_LABEL[s]}</button>`).join('')}
+    </div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button></div>
+  </div>`);
+}
+
+function applyBulkStatus(status) {
+  [...selectedItems].forEach(id => { const it=state.items.find(i=>i.id===id); if(it) it.status=status; });
+  save(); closeModal(); clearSelection(); toast(`Status set to ${STATUS_LABEL[status]}.`);
+}
+
+function selAddToDeal() {
+  const ids = [...selectedItems];
+  if (!state.deals.length) {
+    switchPage('deals'); openAddDeal(ids); clearSelection(); return;
+  }
+  showModal(`<div class="modal">
+    <div class="modal-title">Add to deal <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">${ids.length} item${ids.length!==1?'s':''} → select deal:</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${state.deals.map(d=>`<button class="btn" style="justify-content:flex-start;" onclick="addItemsToDeal('${d.id}',${JSON.stringify(ids)})"><i class="ti ti-git-merge"></i> ${esc(d.name)}</button>`).join('')}
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal();window._dealPreselected=${JSON.stringify(ids)};openAddDeal(window._dealPreselected)"><i class="ti ti-plus"></i> New deal</button>
+    </div>
+  </div>`);
+}
+
+function addItemsToDeal(dealId, itemIds) {
+  const deal = state.deals.find(d=>d.id===dealId);
+  if (!deal) return;
+  itemIds.forEach(id => { if (!deal.itemIds.includes(id)) deal.itemIds.push(id); });
+  save(); closeModal(); clearSelection(); toast(`Added to "${deal.name}".`);
+}
+
+/* ═══════════════════════════════════════════════
+   IBAN MANAGER
+═══════════════════════════════════════════════ */
+function renderIBANs() {
+  try {
+    const list  = document.getElementById('ibanList');
+    const empty = document.getElementById('emptyIbans');
+    const ibans = state.ibans || [];
+    if (!ibans.length) { list.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    list.innerHTML = ibans.map(iban => {
+      const usedBy = state.accounts.filter(a=>a.ibanId===iban.id).map(a=>a.name);
+      return `<div class="iban-card">
+        <div class="iban-icon"><i class="ti ti-building-bank" style="font-size:20px;color:var(--text2);"></i></div>
+        <div class="iban-info">
+          <div class="iban-label">${esc(iban.label||'Unnamed IBAN')}</div>
+          <div class="iban-num">${esc(iban.number)}</div>
+          ${iban.owner?`<div class="iban-owner">${esc(iban.owner)}</div>`:''}
+          ${usedBy.length?`<div style="font-size:11px;color:var(--blue);margin-top:3px;">Used by: ${usedBy.map(esc).join(', ')}</div>`:''}
+        </div>
+        <div class="iban-actions">
+          <button class="btn btn-sm" onclick="copyIBAN('${esc(iban.number)}')"><i class="ti ti-copy"></i></button>
+          <button class="btn btn-sm" onclick="openEditIBAN('${iban.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteIBAN('${iban.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error('renderIBANs error:', e); }
+}
+
+function copyIBAN(num) {
+  navigator.clipboard?.writeText(num).then(()=>toast('IBAN copied.')).catch(()=>toast(num));
+}
+
+function ibanModal(ib) {
+  return `<div class="modal">
+    <div class="modal-title">${ib?'Edit':'New'} IBAN <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Label *</label><input type="text" id="ib_label" value="${ib?esc(ib.label):''}" placeholder="e.g. Main bank, Revolut PLN" /></div>
+    <div class="form-row"><label class="form-label">IBAN number *</label><input type="text" id="ib_number" value="${ib?esc(ib.number):''}" placeholder="PL61 1090 1014 0000 0712 1981 2874" style="font-family:monospace;letter-spacing:.04em;" /></div>
+    <div class="form-row"><label class="form-label">Owner name</label><input type="text" id="ib_owner" value="${ib?esc(ib.owner||''):''}" placeholder="Full name on account" /></div>
+    <div class="form-row"><label class="form-label">Bank / institution</label><input type="text" id="ib_bank" value="${ib?esc(ib.bank||''):''}" placeholder="e.g. PKO, mBank, Revolut" /></div>
+    <div class="modal-actions">
+      ${ib?`<button class="btn btn-danger" onclick="deleteIBAN('${ib.id}')"><i class="ti ti-trash"></i></button>`:''}
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIBAN('${ib?ib.id:''}')">Save</button>
+    </div>
+  </div>`;
+}
+function openAddIBAN()    { showModal(ibanModal(null)); }
+function openEditIBAN(id) { const ib=(state.ibans||[]).find(x=>x.id===id); if(ib) showModal(ibanModal(ib)); }
+
+function saveIBAN(editId) {
+  const label  = document.getElementById('ib_label').value.trim();
+  const number = document.getElementById('ib_number').value.trim().replace(/\s+/g,' ');
+  if (!label||!number) { toast('Label and IBAN number are required.'); return; }
+  if (!state.ibans) state.ibans=[];
+  const ib = { id:editId||uid(), label, number, owner:document.getElementById('ib_owner').value.trim(), bank:document.getElementById('ib_bank').value.trim() };
+  if (editId) { const idx=state.ibans.findIndex(x=>x.id===editId); if(idx>-1) state.ibans[idx]=ib; }
+  else state.ibans.push(ib);
+  save(); closeModal(); renderIBANs(); toast(editId?'IBAN updated.':'IBAN saved.');
+}
+
+function deleteIBAN(id) {
+  const ib = (state.ibans||[]).find(x=>x.id===id);
+  state.ibans = (state.ibans||[]).filter(x=>x.id!==id);
+  // unlink from accounts
+  state.accounts.forEach(a=>{ if(a.ibanId===id) a.ibanId=''; });
+  save(); closeModal(); renderIBANs(); toast('IBAN deleted.');
+}
+
+/* ═══════════════════════════════════════════════
+   DEALS
+═══════════════════════════════════════════════ */
+function renderDeals() {
+  try {
+    const list  = document.getElementById('dealList');
+    const empty = document.getElementById('emptyDeals');
+    const deals = state.deals || [];
+    if (!deals.length) { list.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    list.innerHTML = deals.map(deal => {
+      const items = (deal.itemIds||[]).map(id=>state.items.find(i=>i.id===id)).filter(Boolean);
+      const revenue = items.reduce((s,i)=>s+(parseFloat(i.sellPrice)||0),0);
+      const cost    = items.reduce((s,i)=>s+(parseFloat(i.buyPrice)||0),0);
+      const profit  = revenue-cost;
+      const sold    = items.filter(i=>i.status==='sold'||i.status==='completed').length;
+      return `<div class="deal-card">
+        <div class="deal-header">
+          <div>
+            <div class="deal-name">${esc(deal.name)}</div>
+            ${deal.description?`<div class="deal-desc">${esc(deal.description)}</div>`:''}
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;">${items.length} item${items.length!==1?'s':''} · ${sold} sold · created ${deal.created||'—'}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm" onclick="openEditDeal('${deal.id}')"><i class="ti ti-edit"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="deleteDeal('${deal.id}')"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>
+        <div class="deal-metrics">
+          <div class="deal-metric"><div class="deal-metric-label">Revenue</div><div class="deal-metric-val">${revenue.toFixed(0)} zł</div></div>
+          <div class="deal-metric"><div class="deal-metric-label">Cost</div><div class="deal-metric-val">${cost.toFixed(0)} zł</div></div>
+          <div class="deal-metric"><div class="deal-metric-label">Profit</div><div class="deal-metric-val" style="color:${profit>=0?'var(--green)':'var(--red)'};">${profit>=0?'+':''}${profit.toFixed(0)} zł</div></div>
+          <div class="deal-metric"><div class="deal-metric-label">Margin</div><div class="deal-metric-val">${revenue?(profit/revenue*100).toFixed(0):0}%</div></div>
+        </div>
+        <div class="deal-items-preview">
+          ${items.slice(0,8).map(i=>`<div class="deal-item-chip">${statusBadge(i.status)} ${esc(i.name.slice(0,20))} <span class="remove-chip" onclick="removeFromDeal('${deal.id}','${i.id}')">×</span></div>`).join('')}
+          ${items.length>8?`<div class="deal-item-chip" style="color:var(--text3);">+${items.length-8} more</div>`:''}
+        </div>
+        <div class="deal-actions">
+          <button class="btn btn-sm" onclick="openAddItemsToDeal('${deal.id}')"><i class="ti ti-plus"></i> Add items</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error('renderDeals error:', e); }
+}
+
+function openAddDeal(preselectedIds) {
+  window._dealPreselected = preselectedIds || [];
+  const ids = window._dealPreselected;
+  showModal(`<div class="modal">
+    <div class="modal-title">New deal <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Deal name *</label><input type="text" id="dl_name" placeholder="e.g. Vinted June batch, Manchester bundle" /></div>
+    <div class="form-row"><label class="form-label">Description</label><input type="text" id="dl_desc" placeholder="Optional notes about this deal" /></div>
+    ${ids.length ? `<div style="font-size:13px;color:var(--blue);margin-bottom:8px;padding:8px 10px;background:var(--bg2);border-radius:var(--radius);"><i class="ti ti-checkmark"></i> ${ids.length} item${ids.length!==1?'s':''} will be added.</div>` : ''}
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDeal()">Create deal</button>
+    </div>
+  </div>`);
+  setTimeout(() => document.getElementById('dl_name')?.focus(), 50);
+}
+
+function openEditDeal(id) {
+  const deal = (state.deals||[]).find(d=>d.id===id);
+  if (!deal) return;
+  showModal(`<div class="modal">
+    <div class="modal-title">Edit deal <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div class="form-row"><label class="form-label">Deal name *</label><input type="text" id="dl_name" value="${esc(deal.name)}" /></div>
+    <div class="form-row"><label class="form-label">Description</label><input type="text" id="dl_desc" value="${esc(deal.description||'')}" /></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDeal('${id}')">Save changes</button>
+    </div>
+  </div>`);
+}
+
+function saveDeal(editId) {
+  const name = document.getElementById('dl_name')?.value.trim();
+  if (!name) { document.getElementById('dl_name').style.borderColor='var(--red)'; toast('Deal name is required.'); return; }
+  if (!state.deals) state.deals = [];
+  if (editId) {
+    const d = state.deals.find(x => x.id === editId);
+    if (d) { d.name = name; d.description = document.getElementById('dl_desc')?.value.trim() || ''; }
+  } else {
+    const preselected = window._dealPreselected || [];
+    state.deals.push({ id: uid(), name, description: document.getElementById('dl_desc')?.value.trim() || '', itemIds: preselected, created: new Date().toISOString().slice(0,10) });
+    window._dealPreselected = [];
+  }
+  save(); closeModal(); renderDeals(); toast(editId ? 'Deal updated.' : 'Deal created.');
+}
+
+function deleteDeal(id) {
+  state.deals=(state.deals||[]).filter(d=>d.id!==id);
+  save(); renderDeals(); toast('Deal deleted.');
+}
+
+function removeFromDeal(dealId, itemId) {
+  const d=(state.deals||[]).find(x=>x.id===dealId);
+  if(d){ d.itemIds=d.itemIds.filter(i=>i!==itemId); save(); renderDeals(); }
+}
+
+function openAddItemsToDeal(dealId) {
+  const deal=(state.deals||[]).find(d=>d.id===dealId);
+  if(!deal) return;
+  const available=state.items.filter(i=>!deal.itemIds.includes(i.id)&&!isArchived(i));
+  if(!available.length){ toast('No available items to add.'); return; }
+  let tempSelected=new Set();
+  const renderChk=()=>{
+    const container=document.getElementById('dealItemPicker');
+    if(!container) return;
+    container.innerHTML=available.map(i=>`<label style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--radius);cursor:pointer;${tempSelected.has(i.id)?'background:var(--bg2)':''}">
+      <input type="checkbox" ${tempSelected.has(i.id)?'checked':''} onchange="dealPickToggle('${i.id}')" style="width:15px;height:15px;accent-color:var(--blue);" />
+      <span style="flex:1;">${esc(i.name)}</span>
+      ${statusBadge(i.status)}
+    </label>`).join('');
+  };
+  window.dealPickToggle=(id)=>{ if(tempSelected.has(id)) tempSelected.delete(id); else tempSelected.add(id); renderChk(); };
+  showModal(`<div class="modal">
+    <div class="modal-title">Add items to "${esc(deal.name)}" <button class="btn" onclick="closeModal()" style="padding:4px 10px;"><i class="ti ti-x"></i></button></div>
+    <div style="max-height:320px;overflow-y:auto;" id="dealItemPicker"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddToDeal('${dealId}')">Add selected</button>
+    </div>
+  </div>`);
+  setTimeout(renderChk,0);
+}
+
+function confirmAddToDeal(dealId) {
+  const deal=(state.deals||[]).find(d=>d.id===dealId);
+  if(!deal) return;
+  const checked=[...document.querySelectorAll('#dealItemPicker input:checked')].map(el=>el.closest('label').querySelector('span').textContent);
+  // use tempSelected from closure – re-read from DOM checkboxes
+  const ids=[...document.querySelectorAll('#dealItemPicker input:checked')].map(el=>{
+    // find matching item by name
+    const name=el.closest('label').querySelector('span').textContent.trim();
+    return state.items.find(i=>i.name===name&&!deal.itemIds.includes(i.id))?.id;
+  }).filter(Boolean);
+  ids.forEach(id=>{ if(!deal.itemIds.includes(id)) deal.itemIds.push(id); });
+  save(); closeModal(); renderDeals(); toast(`Added ${ids.length} item${ids.length!==1?'s':''} to deal.`);
+}
+
+/* ─────────────────────────────────────────────────
+   AUTH FUNCTIONS
+───────────────────────────────────────────────── */
+function switchAuthTab(tab) {
+  document.getElementById('loginForm').style.display    = tab==='login'    ? '' : 'none';
+  document.getElementById('registerForm').style.display = tab==='register' ? '' : 'none';
+  document.getElementById('tabLogin').classList.toggle('active',    tab==='login');
+  document.getElementById('tabRegister').classList.toggle('active', tab==='register');
+  const el = document.getElementById('authError');
+  el.className = 'auth-msg'; // hide
+  if (tab==='login') {
+    document.getElementById('authTitle').textContent = 'Welcome back';
+    document.getElementById('authSub').textContent   = 'Sign in to your TrackINVY account';
+  } else {
+    document.getElementById('authTitle').textContent = 'Create your account';
+    document.getElementById('authSub').textContent   = 'Free forever. No credit card required.';
+  }
+}
+
+function showAuthError(msg, type='error') {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.className = 'auth-msg visible ' + type;
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPassword').value;
+  if (!email || !pass) { showAuthError('Please fill in all fields.'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.textContent = 'Sign in →'; btn.disabled = false;
+  if (error) { showAuthError(error.message); return; }
+}
+
+async function doRegister() {
+  const name  = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass  = document.getElementById('regPassword').value;
+  if (!email || !pass) { showAuthError('Please fill in all fields.'); return; }
+  const btn = document.getElementById('registerBtn');
+  btn.textContent = 'Creating account…'; btn.disabled = true;
+  const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { display_name: name } } });
+  btn.textContent = 'Create account →'; btn.disabled = false;
+  if (error) { showAuthError(error.message); return; }
+  if (data.user) await sb.from('profiles').upsert({ id: data.user.id, display_name: name });
+  showAuthError('Account created! You can now sign in.', 'info');
+  setTimeout(() => switchAuthTab('login'), 1500);
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentUser = null;
+  state = { items: [], orders: [], accounts: [], expenses: [], filter: 'all', period: '7d' };
+  document.getElementById('mainApp').style.display   = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('userPill').style.display   = 'none';
+  setSyncStatus('', '—');
+}
+
+async function doResetPassword() {
+  const email = document.getElementById('loginEmail').value.trim();
+  if (!email) { showAuthError('Enter your email above first.'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email);
+  if (error) { showAuthError(error.message); return; }
+  showAuthError('Password reset email sent!');
+}
+
+function onUserReady(user) {
+  currentUser = user;
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display    = '';
+  document.getElementById('userPill').style.display   = 'flex';
+  const email = user.email || '';
+  document.getElementById('userEmail').textContent = email;
+  document.getElementById('userAvatar').textContent = (user.user_metadata?.display_name || email)[0].toUpperCase();
+  loadData().then(() => {
+    loadArchiveSettings();
+    updateFilterDropdowns();
+    renderInventory();
+  });
+}
+
 /* ─────────────────────────────────────────────────
    INIT
 ───────────────────────────────────────────────── */
-loadData().then(() => {
-  loadArchiveSettings();
-  updateFilterDropdowns();
-  renderInventory();
+sb.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    onUserReady(session.user);
+  } else if (event === 'SIGNED_OUT') {
+    document.getElementById('mainApp').style.display    = 'none';
+    document.getElementById('authScreen').style.display = 'flex';
+  }
+});
+
+// Check for existing session on load
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (!session) {
+    document.getElementById('authScreen').style.display = 'flex';
+  }
+  // If session exists, onAuthStateChange fires automatically
 });
 </script>
 </body>
